@@ -1,0 +1,26 @@
+# Configuration Nixpacks pour Railway
+# Ce fichier indique à Railway comment construire l'application backend
+
+[phases.setup]
+nixPkgs = ["nodejs_20", "python3", "make", "gcc", "openssl"]
+
+[phases.install]
+cmds = [
+  "cd backend",
+  "npm ci",
+  "npx prisma generate"
+]
+
+[phases.build]
+cmds = [
+  "cd backend",
+  "npm run build"
+]
+
+[start]
+cmd = "cd backend && npm run start:prod"
+
+[variables]
+NODE_ENV = "production"
+PORT = "3000"
+

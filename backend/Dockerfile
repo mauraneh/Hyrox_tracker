@@ -20,10 +20,10 @@ RUN npx prisma generate
 RUN npm run build
 
 # Stage 2: Development
-FROM node:20-alpine AS development
+FROM node:20-alpine3.18 AS development
 
-# Install build dependencies for native modules and OpenSSL for Prisma
-RUN apk add --no-cache python3 make g++ openssl-dev
+# Install build dependencies for native modules and OpenSSL 1.1 for Prisma
+RUN apk add --no-cache python3 make g++ openssl1.1-compat
 
 WORKDIR /app
 

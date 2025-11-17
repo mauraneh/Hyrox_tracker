@@ -103,7 +103,14 @@ export class RegisterPage {
         },
         error: (error) => {
           this.isLoading = false;
-          this.errorMessage = error.error?.error?.message || 'Une erreur est survenue';
+          // NestJS error format: { statusCode, message } or { error: { message } }
+          if (error.error?.message) {
+            this.errorMessage = error.error.message;
+          } else if (error.error?.error?.message) {
+            this.errorMessage = error.error.error.message;
+          } else {
+            this.errorMessage = error.status === 409 ? 'Cet email est déjà utilisé' : 'Une erreur est survenue lors de l\'inscription';
+          }
         },
       });
     }

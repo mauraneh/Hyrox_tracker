@@ -1,8 +1,6 @@
-// This is your Prisma schema file
-
 generator client {
   provider      = "prisma-client-js"
-  binaryTargets = ["native", "linux-musl-openssl-3.0.x"]
+  binaryTargets = ["native", "linux-musl-arm64-openssl-1.1.x"]
 }
 
 datasource db {
@@ -11,40 +9,38 @@ datasource db {
 }
 
 model User {
-  id        String   @id @default(uuid())
-  email     String   @unique
+  id        String        @id @default(uuid())
+  email     String        @unique
   password  String
   firstName String
   lastName  String
-  category  String?  // Men, Women, Pro, Doubles
+  category  String?
   weight    Float?
   height    Float?
   avatar    String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
   courses   Course[]
-  trainings Training[]
   goals     Goal[]
+  trainings Training[]
   settings  UserSettings?
 
   @@map("users")
 }
 
 model Course {
-  id        String   @id @default(uuid())
+  id        String       @id @default(uuid())
   userId    String
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   name      String
   city      String
   date      DateTime
-  category  String   // Men, Women, Pro, Doubles
-  totalTime Int      // Total time in seconds
+  category  String
+  totalTime Int
   notes     String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  times CourseTime[]
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
+  times     CourseTime[]
+  user      User         @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
   @@index([date])
@@ -54,9 +50,9 @@ model Course {
 model CourseTime {
   id          String @id @default(uuid())
   courseId    String
+  segment     String
+  timeSeconds Int
   course      Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
-  segment     String // run1, sledPush, run2, sledPull, run3, burpeeBroadJump, run4, row, run5, farmerCarry, run6, sandbagLunges, run7, wallBalls, run8
-  timeSeconds Int    // Time in seconds
 
   @@unique([courseId, segment])
   @@index([courseId])
@@ -66,16 +62,16 @@ model CourseTime {
 model Training {
   id        String   @id @default(uuid())
   userId    String
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  type      String   // Run, Sled, Renfo, MixHyrox
+  type      String
   date      DateTime
-  duration  Int?     // Duration in minutes
-  distance  Float?   // Distance in km
-  load      Float?   // Load in kg
-  rpe       Int?     // Rate of Perceived Exertion (1-10)
+  duration  Int?
+  distance  Float?
+  load      Float?
+  rpe       Int?
   notes     String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
   @@index([date])
@@ -85,14 +81,14 @@ model Training {
 model Goal {
   id         String    @id @default(uuid())
   userId     String
-  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   title      String
-  targetTime Int?      // Target time in seconds
+  targetTime Int?
   targetDate DateTime?
   achieved   Boolean   @default(false)
   achievedAt DateTime?
   createdAt  DateTime  @default(now())
   updatedAt  DateTime  @updatedAt
+  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
   @@map("goals")
@@ -101,13 +97,11 @@ model Goal {
 model UserSettings {
   id            String   @id @default(uuid())
   userId        String   @unique
-  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  theme         String   @default("light") // light, dark
+  theme         String   @default("light")
   notifications Boolean  @default(true)
   language      String   @default("fr")
   updatedAt     DateTime @updatedAt
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("user_settings")
 }
-
-
