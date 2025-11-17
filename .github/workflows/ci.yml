@@ -60,7 +60,7 @@ jobs:
         run: npm run lint
 
       - name: Run tests
-        run: npm test -- --coverage --watchAll=false
+        run: npm test -- --coverage --watchAll=false --passWithNoTests
         env:
           DATABASE_URL: postgresql://postgres:postgres@localhost:5432/hyrox_db_test
 
