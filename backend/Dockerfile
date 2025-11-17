@@ -27,22 +27,21 @@ RUN apk add --no-cache python3 make g++ openssl1.1-compat
 
 WORKDIR /app
 
-# Copy package files and entrypoint script
+# Copy package files
 COPY package*.json ./
 COPY prisma ./prisma/
-COPY docker-entrypoint.sh /usr/local/bin/
 
-# Make entrypoint executable
-RUN chmod +x /usr/local/bin/docker-entrypoint.sh
+# Install dependencies
+RUN npm install
+
+# Generate Prisma Client
+RUN npx prisma generate
 
 # Copy source code
 COPY . .
 
 # Expose port
 EXPOSE 3000
-
-# Set entrypoint
-ENTRYPOINT ["docker-entrypoint.sh"]
 
 # Start the application in dev mode
 CMD ["npm", "run", "start:dev"]
@@ -74,7 +73,7 @@ EXPOSE 3000
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-    CMD node -e "require('http').get('http://localhost:3000/health', (r) => {process.exit(r.statusCode === 200 ? 0 : 1)})"
+    CMD node -e "require('http').get('http://localhost:3000/api/health', (r) => {process.exit(r.statusCode === 200 ? 0 : 1)})"
 
 # Start the application
 CMD ["node", "dist/main.js"]

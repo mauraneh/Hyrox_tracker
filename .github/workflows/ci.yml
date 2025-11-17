@@ -1,4 +1,4 @@
-name: CI/CD Pipeline
+name: CI Pipeline
 
 on:
   push:
@@ -6,8 +6,11 @@ on:
   pull_request:
     branches: [main, develop]
 
+env:
+  NODE_VERSION: '20'
+
 jobs:
-  backend:
+  backend-test:
     name: Backend - Test & Build
     runs-on: ubuntu-latest
 
@@ -37,7 +40,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
           cache-dependency-path: backend/package-lock.json
 
@@ -45,6 +48,7 @@ jobs:
         run: npm ci --audit=false
         env:
           npm_config_audit: false
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/hyrox_db_test
 
       - name: Generate Prisma Client
         run: npx prisma generate
@@ -56,7 +60,7 @@ jobs:
         env:
           DATABASE_URL: postgresql://postgres:postgres@localhost:5432/hyrox_db_test
 
-      - name: Lint code
+      - name: Lint
         run: npm run lint
 
       - name: Run tests
@@ -64,12 +68,12 @@ jobs:
         env:
           DATABASE_URL: postgresql://postgres:postgres@localhost:5432/hyrox_db_test
 
-      - name: Build application
+      - name: Build
         run: npm run build
         env:
           DATABASE_URL: postgresql://postgres:postgres@localhost:5432/hyrox_db_test
 
-  frontend:
+  frontend-test:
     name: Frontend - Test & Build
     runs-on: ubuntu-latest
 
@@ -84,7 +88,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
           cache-dependency-path: frontend/package-lock.json
 
@@ -93,12 +97,73 @@ jobs:
         env:
           npm_config_audit: false
 
-      - name: Lint code
+      - name: Lint
         run: npm run lint
+
+      - name: Run tests
+        run: npm test -- --coverage --watchAll=false --passWithNoTests
         continue-on-error: true
 
-      - name: Build application
+      - name: Build
         run: npm run build:prod
-        env:
-          NODE_ENV: production
+
+  docker-build:
+    name: Docker - Build Images
+    runs-on: ubuntu-latest
+    needs: [backend-test, frontend-test]
+    if: github.event_name == 'push'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build backend image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./backend
+          file: ./backend/Dockerfile
+          target: production
+          push: false
+          tags: hyrox-backend:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Build frontend image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./frontend
+          file: ./frontend/Dockerfile
+          target: production
+          push: false
+          tags: hyrox-frontend:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  security-audit:
+    name: Security Audit
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Audit backend dependencies
+        run: |
+          cd backend
+          npm audit --audit-level=moderate || true
+        continue-on-error: true
+
+      - name: Audit frontend dependencies
+        run: |
+          cd frontend
+          npm audit --audit-level=moderate || true
+        continue-on-error: true
 
