@@ -1,12 +1,10 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { NotFoundException, ForbiddenException } from '@nestjs/common';
 import { TrainingsService } from './trainings.service';
-import { PrismaService } from '@/prisma/prisma.service';
 import { CreateTrainingDto } from './dto/create-training.dto';
 
 describe('TrainingsService', () => {
   let service: TrainingsService;
-  let prisma: PrismaService;
 
   const mockPrismaService = {
     training: {
@@ -30,7 +28,6 @@ describe('TrainingsService', () => {
     }).compile();
 
     service = module.get<TrainingsService>(TrainingsService);
-    prisma = module.get<PrismaService>(PrismaService);
   });
 
   afterEach(() => {
@@ -126,4 +123,3 @@ describe('TrainingsService', () => {
     });
   });
 });
-

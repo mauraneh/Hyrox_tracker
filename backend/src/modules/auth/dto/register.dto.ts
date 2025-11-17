@@ -36,5 +36,3 @@ export class RegisterDto {
   @IsOptional()
   height?: number;
 }
-
-

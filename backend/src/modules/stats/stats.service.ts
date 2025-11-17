@@ -45,8 +45,7 @@ export class StatsService {
         latestTime,
         averageTime,
         nextHyrox: upcomingCourses[0] || null,
-        improvement:
-          bestTime && latestTime ? ((latestTime - bestTime) / bestTime) * 100 : null,
+        improvement: bestTime && latestTime ? ((latestTime - bestTime) / bestTime) * 100 : null,
       },
     };
   }
@@ -119,5 +118,3 @@ export class StatsService {
     };
   }
 }
-
-

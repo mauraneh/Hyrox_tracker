@@ -7,5 +7,3 @@ import { StatsService } from './stats.service';
   providers: [StatsService],
 })
 export class StatsModule {}
-
-

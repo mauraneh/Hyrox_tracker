@@ -4,5 +4,3 @@ export const CurrentUser = createParamDecorator((data: unknown, ctx: ExecutionCo
   const request = ctx.switchToHttp().getRequest();
   return request.user;
 });
-
-

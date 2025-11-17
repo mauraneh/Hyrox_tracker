@@ -88,5 +88,3 @@ export class AuthService {
     return sanitized;
   }
 }
-
-

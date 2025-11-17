@@ -1,14 +1,4 @@
-import {
-  Controller,
-  Get,
-  Post,
-  Put,
-  Delete,
-  Body,
-  Param,
-  Query,
-  UseGuards,
-} from '@nestjs/common';
+import { Controller, Get, Post, Put, Delete, Body, Param, Query, UseGuards } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth, ApiQuery } from '@nestjs/swagger';
 import { CoursesService } from './courses.service';
 import { CreateCourseDto } from './dto/create-course.dto';
@@ -27,10 +17,7 @@ export class CoursesController {
   @ApiOperation({ summary: 'Create a new course' })
   @ApiResponse({ status: 201, description: 'Course created successfully' })
   @ApiResponse({ status: 400, description: 'Bad request' })
-  async create(
-    @Body() createCourseDto: CreateCourseDto,
-    @CurrentUser() user: { userId: string },
-  ) {
+  async create(@Body() createCourseDto: CreateCourseDto, @CurrentUser() user: { userId: string }) {
     return this.coursesService.create(user.userId, createCourseDto);
   }
 
@@ -77,5 +64,3 @@ export class CoursesController {
     return this.coursesService.remove(id, user.userId);
   }
 }
-
-

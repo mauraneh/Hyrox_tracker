@@ -36,5 +36,3 @@ export class CreateTrainingDto {
   @IsString()
   notes?: string;
 }
-
-

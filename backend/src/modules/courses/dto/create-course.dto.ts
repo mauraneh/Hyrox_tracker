@@ -54,5 +54,3 @@ export class CreateCourseDto {
   @Type(() => CourseTimeDto)
   times: CourseTimeDto[];
 }
-
-

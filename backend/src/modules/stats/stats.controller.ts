@@ -32,5 +32,3 @@ export class StatsController {
     return this.statsService.getStationStats(user.userId);
   }
 }
-
-

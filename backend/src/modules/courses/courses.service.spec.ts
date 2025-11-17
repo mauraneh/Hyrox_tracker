@@ -1,13 +1,10 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { NotFoundException, ForbiddenException } from '@nestjs/common';
 import { CoursesService } from './courses.service';
-import { PrismaService } from '@/prisma/prisma.service';
 import { CreateCourseDto } from './dto/create-course.dto';
-import { UpdateCourseDto } from './dto/update-course.dto';
 
 describe('CoursesService', () => {
   let service: CoursesService;
-  let prisma: PrismaService;
 
   const mockPrismaService = {
     course: {
@@ -31,7 +28,6 @@ describe('CoursesService', () => {
     }).compile();
 
     service = module.get<CoursesService>(CoursesService);
-    prisma = module.get<PrismaService>(PrismaService);
   });
 
   afterEach(() => {
@@ -47,16 +43,14 @@ describe('CoursesService', () => {
         date: '2024-03-15',
         category: 'Men',
         totalTime: 5400,
-        times: [
-          { segment: 'run1', timeSeconds: 240 },
-        ],
+        times: [{ segment: 'run1', timeSeconds: 240 }],
       };
 
       const mockCourse = {
         id: 'course-id',
         userId,
         ...createCourseDto,
-        times: createCourseDto.times.map(t => ({ id: 'time-id', courseId: 'course-id', ...t })),
+        times: createCourseDto.times.map((t) => ({ id: 'time-id', courseId: 'course-id', ...t })),
       };
 
       mockPrismaService.course.create.mockResolvedValue(mockCourse);
@@ -146,4 +140,3 @@ describe('CoursesService', () => {
     });
   });
 });
-
