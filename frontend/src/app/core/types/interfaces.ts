@@ -43,3 +43,19 @@ export interface StatsOverview {
   improvement: number | null;
 }
 
+export interface ProgressionData {
+  id: string;
+  name: string;
+  date: string;
+  totalTime: number;
+  category: string;
+}
+
+export interface StationStats {
+  best: number;
+  average: number;
+  latest: number;
+  bestPlace: number | null;
+  averagePlace: number | null;
+}
+

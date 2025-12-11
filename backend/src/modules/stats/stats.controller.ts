@@ -31,4 +31,11 @@ export class StatsController {
   async getStationStats(@CurrentUser() user: { userId: string }) {
     return this.statsService.getStationStats(user.userId);
   }
+
+  @Get('roxzone')
+  @ApiOperation({ summary: 'Get Roxzone, Run Total and Best Run Lap statistics' })
+  @ApiResponse({ status: 200, description: 'Roxzone statistics retrieved successfully' })
+  async getRoxzoneStats(@CurrentUser() user: { userId: string }) {
+    return this.statsService.getRoxzoneStats(user.userId);
+  }
 }

@@ -8,16 +8,16 @@ import { AuthService } from '@core/auth/auth.service';
   standalone: true,
   imports: [ReactiveFormsModule, RouterLink],
   template: `
-    <div class="min-h-screen flex items-center justify-center bg-dark-50 dark:bg-dark-900 px-4 py-8">
+    <div class="min-h-screen flex items-center justify-center bg-hyrox-black px-4 py-12">
       <div class="max-w-md w-full">
-        <div class="text-center mb-8">
-          <h1 class="text-4xl font-bold text-dark-900 dark:text-white mb-2">Hyrox Tracker</h1>
-          <p class="text-dark-600 dark:text-dark-400">Créez votre compte</p>
+        <div class="text-center mb-10">
+          <h1 class="hyrox-title mb-3">Hyrox Tracker</h1>
+          <p class="text-hyrox-gray-400 text-sm uppercase tracking-wide font-semibold">Créez votre compte</p>
         </div>
 
-        <div class="card">
+        <div class="card border-hyrox-yellow/30 shadow-2xl">
           @if (errorMessage) {
-          <div class="mb-4 p-4 bg-red-100 dark:bg-red-900/20 border border-red-400 text-red-700 dark:text-red-400 rounded-lg text-sm">
+          <div class="mb-4 p-4 bg-red-900/30 border-2 border-red-500 text-red-300 rounded-lg text-sm">
             {{ errorMessage }}
           </div>
           }
@@ -65,9 +65,9 @@ import { AuthService } from '@core/auth/auth.service';
               }
             </button>
 
-            <p class="text-center text-sm text-dark-600 dark:text-dark-400">
+            <p class="text-center text-sm text-hyrox-gray-400">
               Déjà un compte ?
-              <a routerLink="/auth/login" class="text-primary-500 hover:text-primary-600 font-medium">
+              <a routerLink="/auth/login" class="text-hyrox-yellow hover:text-white font-bold transition-colors">
                 Se connecter
               </a>
             </p>

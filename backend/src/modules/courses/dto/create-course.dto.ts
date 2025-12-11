@@ -19,6 +19,12 @@ class CourseTimeDto {
   @IsInt()
   @Min(0)
   timeSeconds: number;
+
+  @ApiProperty({ example: 182, description: 'Position dans ce segment', required: false })
+  @IsOptional()
+  @IsInt()
+  @Min(1)
+  place?: number;
 }
 
 export class CreateCourseDto {
@@ -42,6 +48,24 @@ export class CreateCourseDto {
   @IsInt()
   @Min(0)
   totalTime: number;
+
+  @ApiProperty({ example: 347, description: 'Temps total des stations (Roxzone Time) en secondes', required: false })
+  @IsOptional()
+  @IsInt()
+  @Min(0)
+  roxzoneTime?: number;
+
+  @ApiProperty({ example: 2647, description: 'Temps total des runs (Run Total) en secondes', required: false })
+  @IsOptional()
+  @IsInt()
+  @Min(0)
+  runTotal?: number;
+
+  @ApiProperty({ example: 328, description: 'Meilleur temps de run (Best Run Lap) en secondes', required: false })
+  @IsOptional()
+  @IsInt()
+  @Min(0)
+  bestRunLap?: number;
 
   @ApiProperty({ example: 'Great performance!', required: false })
   @IsOptional()

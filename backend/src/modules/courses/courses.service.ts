@@ -20,9 +20,10 @@ export class CoursesService {
         ...courseData,
         userId,
         times: {
-          create: times.map((time: { segment: string; timeSeconds: number }) => ({
+          create: times.map((time: { segment: string; timeSeconds: number; place?: number }) => ({
             segment: time.segment,
             timeSeconds: time.timeSeconds,
+            place: time.place || null,
           })),
         },
       },
@@ -115,9 +116,10 @@ export class CoursesService {
         ...(times && {
           times: {
             deleteMany: {},
-            create: times.map((time: { segment: string; timeSeconds: number }) => ({
+            create: times.map((time: { segment: string; timeSeconds: number; place?: number }) => ({
               segment: time.segment,
               timeSeconds: time.timeSeconds,
+              place: time.place || null,
             })),
           },
         }),
@@ -177,9 +179,10 @@ export class CoursesService {
         notes: courseNotes || null,
         times: times && times.length > 0
           ? {
-              create: times.map((time: { segment: string; timeSeconds: number }) => ({
+              create: times.map((time: { segment: string; timeSeconds: number; place?: number }) => ({
                 segment: time.segment,
                 timeSeconds: time.timeSeconds,
+                place: time.place || null,
               })),
             }
           : undefined,

@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsString, IsOptional, IsInt, IsDateString, IsArray, ValidateNested } from 'class-validator';
+import { IsString, IsOptional, IsInt, IsDateString, IsArray, ValidateNested, Min } from 'class-validator';
 import { Type } from 'class-transformer';
 
 class SegmentTimeDto {
@@ -10,6 +10,12 @@ class SegmentTimeDto {
   @ApiProperty({ example: 240, description: 'Temps en secondes' })
   @IsInt()
   timeSeconds: number;
+
+  @ApiProperty({ example: 182, description: 'Position dans ce segment', required: false })
+  @IsOptional()
+  @IsInt()
+  @Min(1)
+  place?: number;
 }
 
 export class ImportCourseDto {
@@ -32,6 +38,24 @@ export class ImportCourseDto {
   @ApiProperty({ example: 5400, description: 'Temps total en secondes' })
   @IsInt()
   totalTime: number;
+
+  @ApiProperty({ example: 347, description: 'Temps total des stations (Roxzone Time) en secondes', required: false })
+  @IsOptional()
+  @IsInt()
+  @Min(0)
+  roxzoneTime?: number;
+
+  @ApiProperty({ example: 2647, description: 'Temps total des runs (Run Total) en secondes', required: false })
+  @IsOptional()
+  @IsInt()
+  @Min(0)
+  runTotal?: number;
+
+  @ApiProperty({ example: 328, description: 'Meilleur temps de run (Best Run Lap) en secondes', required: false })
+  @IsOptional()
+  @IsInt()
+  @Min(0)
+  bestRunLap?: number;
 
   @ApiProperty({
     example: [

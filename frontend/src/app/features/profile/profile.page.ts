@@ -1,5 +1,5 @@
 import { Component, inject, OnInit, signal } from '@angular/core';
-import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { FormBuilder, ReactiveFormsModule, Validators, FormArray, FormControl } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
 import { CommonModule } from '@angular/common';
@@ -7,28 +7,47 @@ import { AuthService } from '@core/auth/auth.service';
 import { environment } from '@environments/environment';
 import { Goal, User } from '@core/types/interfaces';
 
+const SEGMENTS = [
+  { key: 'run1', label: 'Run 1' },
+  { key: 'skiErg', label: '1000m SkiErg' },
+  { key: 'run2', label: 'Run 2' },
+  { key: 'sledPush', label: '50m Sled Push' },
+  { key: 'run3', label: 'Run 3' },
+  { key: 'sledPull', label: '50m Sled Pull' },
+  { key: 'run4', label: 'Run 4' },
+  { key: 'burpeeBroadJump', label: '80m Burpee Broad Jump' },
+  { key: 'run5', label: 'Run 5' },
+  { key: 'row', label: '1000m Row' },
+  { key: 'run6', label: 'Run 6' },
+  { key: 'farmerCarry', label: '200m Farmers Carry' },
+  { key: 'run7', label: 'Run 7' },
+  { key: 'sandbagLunges', label: '100m Sandbag Lunges' },
+  { key: 'run8', label: 'Run 8' },
+  { key: 'wallBalls', label: 'Wall Balls' },
+];
+
 @Component({
   selector: 'app-profile',
   standalone: true,
   imports: [ReactiveFormsModule, RouterLink, CommonModule],
   template: `
-    <div class="min-h-screen bg-dark-50 dark:bg-dark-900">
-      <nav class="bg-white dark:bg-dark-800 border-b border-dark-200 dark:border-dark-700">
+    <div class="min-h-screen bg-hyrox-black">
+      <nav class="bg-hyrox-gray-900 border-b border-hyrox-gray-800 shadow-lg">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div class="flex justify-between h-16">
+          <div class="flex justify-between h-20">
             <div class="flex items-center space-x-8">
-              <h1 class="text-2xl font-bold text-dark-900 dark:text-white">Hyrox Tracker</h1>
-              <nav class="hidden md:flex space-x-4">
-                <a routerLink="/dashboard" class="text-dark-600 dark:text-dark-400 hover:text-dark-900 dark:hover:text-white">Dashboard</a>
-                <a routerLink="/courses" class="text-dark-600 dark:text-dark-400 hover:text-dark-900 dark:hover:text-white">Courses</a>
-                <a routerLink="/trainings" class="text-dark-600 dark:text-dark-400 hover:text-dark-900 dark:hover:text-white">Entraînements</a>
-                <a routerLink="/stats" class="text-dark-600 dark:text-dark-400 hover:text-dark-900 dark:hover:text-white">Statistiques</a>
+              <h1 class="hyrox-title">Hyrox Tracker</h1>
+              <nav class="hidden md:flex space-x-6">
+                <a routerLink="/dashboard" class="text-hyrox-gray-400 hover:text-hyrox-yellow font-semibold text-sm uppercase tracking-wide transition-colors">Dashboard</a>
+                <a routerLink="/courses" class="text-hyrox-gray-400 hover:text-hyrox-yellow font-semibold text-sm uppercase tracking-wide transition-colors">Courses</a>
+                <a routerLink="/trainings" class="text-hyrox-gray-400 hover:text-hyrox-yellow font-semibold text-sm uppercase tracking-wide transition-colors">Entraînements</a>
+                <a routerLink="/stats" class="text-hyrox-gray-400 hover:text-hyrox-yellow font-semibold text-sm uppercase tracking-wide transition-colors">Statistiques</a>
               </nav>
             </div>
             <div class="flex items-center space-x-4">
               <!-- Menu utilisateur -->
               <div class="relative user-menu-container">
-                <button (click)="toggleUserMenu($event)" class="flex items-center space-x-2 text-sm text-dark-600 dark:text-dark-400 hover:text-primary-500 dark:hover:text-primary-400 cursor-pointer font-medium transition-colors bg-transparent border-none p-2 rounded-lg hover:bg-dark-100 dark:hover:bg-dark-700">
+                <button (click)="toggleUserMenu($event)" class="flex items-center space-x-2 text-sm text-white hover:text-hyrox-yellow cursor-pointer font-semibold transition-colors bg-transparent border-none p-2 rounded-lg hover:bg-hyrox-gray-800">
                   <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                   </svg>
@@ -39,8 +58,8 @@ import { Goal, User } from '@core/types/interfaces';
                 </button>
                 
                 @if (showUserMenu()) {
-                <div (click)="$event.stopPropagation()" class="absolute right-0 mt-2 w-48 bg-white dark:bg-dark-800 rounded-lg shadow-lg border border-dark-200 dark:border-dark-700 py-1 z-50">
-                  <a routerLink="/profile" (click)="closeUserMenu()" class="block px-4 py-2 text-sm text-dark-700 dark:text-dark-300 hover:bg-dark-100 dark:hover:bg-dark-700">
+                <div (click)="$event.stopPropagation()" class="absolute right-0 mt-2 w-48 bg-hyrox-gray-900 rounded-lg shadow-xl border-2 border-hyrox-yellow py-1 z-50">
+                  <a routerLink="/profile" (click)="closeUserMenu()" class="block px-4 py-2 text-sm text-white hover:bg-hyrox-gray-800 hover:text-hyrox-yellow transition-colors">
                     <div class="flex items-center space-x-2">
                       <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
@@ -48,7 +67,7 @@ import { Goal, User } from '@core/types/interfaces';
                       <span>Profil</span>
                     </div>
                   </a>
-                  <a routerLink="/settings" (click)="closeUserMenu()" class="block px-4 py-2 text-sm text-dark-700 dark:text-dark-300 hover:bg-dark-100 dark:hover:bg-dark-700">
+                  <a routerLink="/settings" (click)="closeUserMenu()" class="block px-4 py-2 text-sm text-white hover:bg-hyrox-gray-800 hover:text-hyrox-yellow transition-colors">
                     <div class="flex items-center space-x-2">
                       <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
@@ -57,8 +76,8 @@ import { Goal, User } from '@core/types/interfaces';
                       <span>Paramètres</span>
                     </div>
                   </a>
-                  <div class="border-t border-dark-200 dark:border-dark-700 my-1"></div>
-                  <button (click)="logout(); closeUserMenu()" class="w-full text-left block px-4 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20">
+                  <div class="border-t border-hyrox-gray-800 my-1"></div>
+                  <button (click)="logout(); closeUserMenu()" class="w-full text-left block px-4 py-2 text-sm text-red-400 hover:bg-red-900/20 hover:text-red-300 transition-colors">
                     <div class="flex items-center space-x-2">
                       <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
@@ -75,20 +94,20 @@ import { Goal, User } from '@core/types/interfaces';
       </nav>
 
       <main class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <h1 class="text-3xl font-bold text-dark-900 dark:text-white mb-8">Profil</h1>
+        <h1 class="text-4xl font-black text-hyrox-yellow mb-8 uppercase tracking-wide">Profil</h1>
 
         <!-- Profil utilisateur -->
         <div class="card mb-8">
-          <h2 class="text-xl font-bold text-dark-900 dark:text-white mb-6">Profil utilisateur</h2>
+          <h2 class="text-xl font-bold text-white mb-6">Profil utilisateur</h2>
 
           @if (profileError()) {
-          <div class="mb-4 p-4 bg-red-100 dark:bg-red-900/20 border border-red-400 text-red-700 dark:text-red-400 rounded-lg text-sm">
+          <div class="mb-4 p-4 bg-red-900/30 border-2 border-red-500 text-red-300 rounded-lg text-sm">
             {{ profileError() }}
           </div>
           }
 
           @if (profileSuccess()) {
-          <div class="mb-4 p-4 bg-green-100 dark:bg-green-900/20 border border-green-400 text-green-700 dark:text-green-400 rounded-lg text-sm">
+          <div class="mb-4 p-4 bg-green-900/30 border-2 border-green-500 text-green-300 rounded-lg text-sm">
             {{ profileSuccess() }}
           </div>
           }
@@ -99,7 +118,7 @@ import { Goal, User } from '@core/types/interfaces';
                 <label class="label" for="firstName">Prénom</label>
                 <input type="text" id="firstName" class="input" formControlName="firstName" />
                 @if (profileForm.controls['firstName'].invalid && profileForm.controls['firstName'].touched) {
-                <p class="mt-1 text-sm text-red-600 dark:text-red-400">Prénom requis (2-50 caractères)</p>
+                <p class="mt-1 text-sm text-red-400">Prénom requis (2-50 caractères)</p>
                 }
               </div>
 
@@ -107,7 +126,7 @@ import { Goal, User } from '@core/types/interfaces';
                 <label class="label" for="lastName">Nom</label>
                 <input type="text" id="lastName" class="input" formControlName="lastName" />
                 @if (profileForm.controls['lastName'].invalid && profileForm.controls['lastName'].touched) {
-                <p class="mt-1 text-sm text-red-600 dark:text-red-400">Nom requis (2-50 caractères)</p>
+                <p class="mt-1 text-sm text-red-400">Nom requis (2-50 caractères)</p>
                 }
               </div>
 
@@ -150,27 +169,27 @@ import { Goal, User } from '@core/types/interfaces';
 
         <!-- Import de résultats -->
         <div class="card mb-8">
-          <h2 class="text-xl font-bold text-dark-900 dark:text-white mb-6">Import de résultats Hyrox</h2>
-          <p class="text-sm text-dark-600 dark:text-dark-400 mb-6">
-            Importez vos résultats depuis <a href="https://results.hyrox.com/" target="_blank" class="text-primary-500 hover:text-primary-600 underline">results.hyrox.com</a> ou <a href="https://www.hyresult.com/" target="_blank" class="text-primary-500 hover:text-primary-600 underline">hyresult.com</a>
+          <h2 class="text-xl font-bold text-white mb-6">Import de résultats Hyrox</h2>
+          <p class="text-sm text-hyrox-gray-400 mb-6">
+            Importez vos résultats depuis <a href="https://results.hyrox.com/" target="_blank" class="text-hyrox-yellow hover:text-white underline font-semibold">results.hyrox.com</a> ou <a href="https://www.hyresult.com/" target="_blank" class="text-hyrox-yellow hover:text-white underline font-semibold">hyresult.com</a>
           </p>
 
           @if (importError()) {
-          <div class="mb-4 p-4 bg-red-100 dark:bg-red-900/20 border border-red-400 text-red-700 dark:text-red-400 rounded-lg text-sm">
+          <div class="mb-4 p-4 bg-red-900/30 border-2 border-red-500 text-red-300 rounded-lg text-sm">
             {{ importError() }}
           </div>
           }
 
           @if (importSuccess()) {
-          <div class="mb-4 p-4 bg-green-100 dark:bg-green-900/20 border border-green-400 text-green-700 dark:text-green-400 rounded-lg text-sm">
+          <div class="mb-4 p-4 bg-green-900/30 border-2 border-green-500 text-green-300 rounded-lg text-sm">
             {{ importSuccess() }}
           </div>
           }
 
           <!-- Recherche par nom -->
-          <div class="mb-6 p-4 bg-dark-100 dark:bg-dark-800 rounded-lg">
-            <h3 class="text-lg font-semibold text-dark-900 dark:text-white mb-4">Rechercher mes résultats</h3>
-            <p class="text-sm text-dark-600 dark:text-dark-400 mb-4">
+          <div class="mb-6 p-4 bg-hyrox-gray-800 rounded-lg border border-hyrox-gray-700">
+            <h3 class="text-lg font-semibold text-white mb-4">Rechercher mes résultats</h3>
+            <p class="text-sm text-hyrox-gray-400 mb-4">
               Ouvrez results.hyrox.com ou hyresult.com avec votre nom pré-rempli pour rechercher manuellement
             </p>
             <div class="flex gap-4">
@@ -184,9 +203,9 @@ import { Goal, User } from '@core/types/interfaces';
           </div>
 
           <!-- Import CSV -->
-          <div class="mb-6 p-4 bg-dark-100 dark:bg-dark-800 rounded-lg">
-            <h3 class="text-lg font-semibold text-dark-900 dark:text-white mb-4">Importer depuis CSV</h3>
-            <p class="text-sm text-dark-600 dark:text-dark-400 mb-4">
+          <div class="mb-6 p-4 bg-hyrox-gray-800 rounded-lg border border-hyrox-gray-700">
+            <h3 class="text-lg font-semibold text-white mb-4">Importer depuis CSV</h3>
+            <p class="text-sm text-hyrox-gray-400 mb-4">
               Exportez vos résultats depuis results.hyrox.com en CSV, puis importez-les ici
             </p>
             <div>
@@ -198,12 +217,12 @@ import { Goal, User } from '@core/types/interfaces';
                 (change)="onFileSelected($event)"
                 class="input"
               />
-              <p class="mt-1 text-xs text-dark-500 dark:text-dark-500">
+              <p class="mt-1 text-xs text-hyrox-gray-500">
                 Format accepté : CSV exporté depuis results.hyrox.com
               </p>
               @if (selectedFile()) {
-              <div class="mt-2 flex items-center justify-between p-2 bg-dark-50 dark:bg-dark-900 rounded">
-                <span class="text-sm text-dark-600 dark:text-dark-400">{{ selectedFile()?.name }}</span>
+              <div class="mt-2 flex items-center justify-between p-2 bg-hyrox-gray-900 rounded border border-hyrox-gray-700">
+                <span class="text-sm text-hyrox-gray-300">{{ selectedFile()?.name }}</span>
                 <button (click)="importCsv()" class="btn-primary text-sm" [disabled]="isImportingCsv()">
                   @if (isImportingCsv()) {
                   <span>Import en cours...</span>
@@ -217,9 +236,9 @@ import { Goal, User } from '@core/types/interfaces';
           </div>
 
           <!-- Import manuel -->
-          <div class="p-4 bg-dark-100 dark:bg-dark-800 rounded-lg">
-            <h3 class="text-lg font-semibold text-dark-900 dark:text-white mb-4">Import manuel</h3>
-            <p class="text-sm text-dark-600 dark:text-dark-400 mb-4">
+          <div class="p-4 bg-hyrox-gray-800 rounded-lg border border-hyrox-gray-700">
+            <h3 class="text-lg font-semibold text-white mb-4">Import manuel</h3>
+            <p class="text-sm text-hyrox-gray-400 mb-4">
               Collez le lien vers votre résultat ou entrez les informations manuellement
             </p>
             <form [formGroup]="importForm" (ngSubmit)="importManually()">
@@ -262,6 +281,64 @@ import { Goal, User } from '@core/types/interfaces';
                     <input type="text" id="importTime" class="input" formControlName="totalTime" placeholder="1:30:00" />
                   </div>
                 </div>
+
+                <!-- Statistiques globales optionnelles -->
+                <div class="mt-4 pt-4 border-t border-hyrox-gray-700">
+                  <h3 class="text-sm font-semibold text-white mb-3">Statistiques globales (optionnel)</h3>
+                  <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div>
+                      <label class="label text-xs" for="importRoxzoneTime">Roxzone Time (H:MM:SS)</label>
+                      <input type="text" id="importRoxzoneTime" class="input" formControlName="roxzoneTime" placeholder="0:05:47" />
+                    </div>
+
+                    <div>
+                      <label class="label text-xs" for="importRunTotal">Run Total (H:MM:SS)</label>
+                      <input type="text" id="importRunTotal" class="input" formControlName="runTotal" placeholder="0:44:07" />
+                    </div>
+
+                    <div>
+                      <label class="label text-xs" for="importBestRunLap">Best Run Lap (MM:SS)</label>
+                      <input type="text" id="importBestRunLap" class="input" formControlName="bestRunLap" placeholder="5:28" />
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Segments -->
+                <div class="mt-4 pt-4 border-t border-hyrox-gray-700">
+                  <h3 class="text-sm font-semibold text-white mb-3">Temps par segment (optionnel)</h3>
+                  <p class="text-xs text-hyrox-gray-400 mb-4">
+                    Renseignez les temps et positions pour chaque segment
+                  </p>
+                  <div class="space-y-2 max-h-96 overflow-y-auto">
+                    @for (segment of SEGMENTS; track segment.key; let i = $index) {
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-2 p-2 bg-hyrox-gray-800 rounded text-sm border border-hyrox-gray-700">
+                      <div class="md:col-span-1 flex items-center">
+                        <label class="text-xs font-medium text-white">{{ segment.label }}</label>
+                      </div>
+                      <div>
+                        <label class="text-xs text-hyrox-gray-400">Temps (MM:SS)</label>
+                        <input
+                          type="text"
+                          class="input text-xs py-1"
+                          [formControl]="getSegmentControl(i, 'time')"
+                          placeholder="5:28"
+                        />
+                      </div>
+                      <div>
+                        <label class="text-xs text-hyrox-gray-400">Position</label>
+                        <input
+                          type="number"
+                          class="input text-xs py-1"
+                          [formControl]="getSegmentControl(i, 'place')"
+                          placeholder="182"
+                          min="1"
+                        />
+                      </div>
+                    </div>
+                    }
+                  </div>
+                </div>
+
                 <button type="submit" class="btn-primary" [disabled]="importForm.invalid || isImportingManual()">
                   @if (isImportingManual()) {
                   <span>Import en cours...</span>
@@ -277,22 +354,22 @@ import { Goal, User } from '@core/types/interfaces';
         <!-- Objectifs personnels -->
         <div class="card">
           <div class="flex items-center justify-between mb-6">
-            <h2 class="text-xl font-bold text-dark-900 dark:text-white">Objectifs personnels</h2>
+            <h2 class="text-xl font-bold text-white">Objectifs personnels</h2>
             <button (click)="showGoalForm.set(true)" class="btn-primary text-sm" [disabled]="showGoalForm()">
               + Ajouter un objectif
             </button>
           </div>
 
           @if (goalsError()) {
-          <div class="mb-4 p-4 bg-red-100 dark:bg-red-900/20 border border-red-400 text-red-700 dark:text-red-400 rounded-lg text-sm">
+          <div class="mb-4 p-4 bg-red-900/30 border-2 border-red-500 text-red-300 rounded-lg text-sm">
             {{ goalsError() }}
           </div>
           }
 
           <!-- Formulaire d'ajout/modification d'objectif -->
           @if (showGoalForm()) {
-          <div class="mb-6 p-4 bg-dark-100 dark:bg-dark-800 rounded-lg">
-            <h3 class="text-lg font-semibold text-dark-900 dark:text-white mb-4">
+          <div class="mb-6 p-4 bg-hyrox-gray-800 rounded-lg border border-hyrox-gray-700">
+            <h3 class="text-lg font-semibold text-white mb-4">
               {{ editingGoal() ? 'Modifier l\'objectif' : 'Nouvel objectif' }}
             </h3>
             <form [formGroup]="goalForm" (ngSubmit)="saveGoal()">
@@ -301,7 +378,7 @@ import { Goal, User } from '@core/types/interfaces';
                   <label class="label" for="goalTitle">Titre de l'objectif</label>
                   <input type="text" id="goalTitle" class="input" formControlName="title" placeholder="Ex: Passer sous 1h25" />
                   @if (goalForm.controls['title'].invalid && goalForm.controls['title'].touched) {
-                  <p class="mt-1 text-sm text-red-600 dark:text-red-400">Titre requis (3-100 caractères)</p>
+                  <p class="mt-1 text-sm text-red-400">Titre requis (3-100 caractères)</p>
                   }
                 </div>
 
@@ -309,7 +386,7 @@ import { Goal, User } from '@core/types/interfaces';
                   <div>
                     <label class="label" for="targetTime">Temps cible (heures:minutes:secondes)</label>
                     <input type="text" id="targetTime" class="input" formControlName="targetTime" placeholder="1:25:00" />
-                    <p class="mt-1 text-xs text-dark-500 dark:text-dark-500">Format: H:MM:SS</p>
+                    <p class="mt-1 text-xs text-hyrox-gray-500">Format: H:MM:SS</p>
                   </div>
 
                   <div>
@@ -335,35 +412,35 @@ import { Goal, User } from '@core/types/interfaces';
 
           <!-- Liste des objectifs -->
           @if (isLoadingGoals()) {
-          <p class="text-dark-600 dark:text-dark-400">Chargement des objectifs...</p>
+          <p class="text-hyrox-gray-400">Chargement des objectifs...</p>
           } @else if (goals().length === 0) {
-          <p class="text-dark-600 dark:text-dark-400">Aucun objectif défini pour le moment.</p>
+          <p class="text-hyrox-gray-400">Aucun objectif défini pour le moment.</p>
           } @else {
           <div class="space-y-4">
             @for (goal of goals(); track goal.id) {
-            <div class="p-4 border border-dark-200 dark:border-dark-700 rounded-lg" [ngClass]="{'bg-green-50 dark:bg-green-900/10': goal.achieved}">
+            <div class="p-4 border border-hyrox-gray-700 rounded-lg" [ngClass]="{'bg-green-900/20 border-green-500/50': goal.achieved}">
               <div class="flex items-start justify-between">
                 <div class="flex-1">
                   <div class="flex items-center space-x-2 mb-2">
-                    <h3 class="text-lg font-semibold text-dark-900 dark:text-white">{{ goal.title }}</h3>
+                    <h3 class="text-lg font-semibold text-white">{{ goal.title }}</h3>
                     @if (goal.achieved) {
-                    <span class="px-2 py-1 text-xs font-medium bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-400 rounded">
+                    <span class="px-2 py-1 text-xs font-medium bg-green-900/30 text-green-300 rounded border border-green-500/50">
                       Atteint
                     </span>
                     }
                   </div>
                   @if (goal.targetTime) {
-                  <p class="text-sm text-dark-600 dark:text-dark-400 mb-1">
+                  <p class="text-sm text-hyrox-gray-400 mb-1">
                     Temps cible: {{ formatTime(goal.targetTime) }}
                   </p>
                   }
                   @if (goal.targetDate) {
-                  <p class="text-sm text-dark-600 dark:text-dark-400 mb-1">
+                  <p class="text-sm text-hyrox-gray-400 mb-1">
                     Date cible: {{ formatDate(goal.targetDate) }}
                   </p>
                   }
                   @if (goal.achieved && goal.achievedAt) {
-                  <p class="text-sm text-green-600 dark:text-green-400">
+                  <p class="text-sm text-green-300">
                     Atteint le: {{ formatDate(goal.achievedAt) }}
                   </p>
                   }
@@ -373,7 +450,7 @@ import { Goal, User } from '@core/types/interfaces';
                   <button (click)="markAsAchieved(goal.id)" class="btn-outline text-sm">Marquer comme atteint</button>
                   }
                   <button (click)="editGoal(goal)" class="btn-outline text-sm">Modifier</button>
-                  <button (click)="deleteGoal(goal.id)" class="btn-outline text-sm text-red-600 dark:text-red-400">Supprimer</button>
+                  <button (click)="deleteGoal(goal.id)" class="btn-outline text-sm text-red-400 hover:text-red-300">Supprimer</button>
                 </div>
               </div>
             </div>
@@ -431,7 +508,25 @@ export class ProfilePage implements OnInit {
     date: ['', [Validators.required]],
     category: ['', [Validators.required]],
     totalTime: ['', [Validators.required]],
+    roxzoneTime: [''],
+    runTotal: [''],
+    bestRunLap: [''],
+    segments: this.#fb.array(
+      SEGMENTS.map(() =>
+        this.#fb.group({
+          time: [''],
+          place: [''],
+        }),
+      ),
+    ),
   });
+
+  SEGMENTS = SEGMENTS;
+
+  getSegmentControl(index: number, field: 'time' | 'place'): FormControl {
+    const segmentsArray = this.importForm.get('segments') as FormArray;
+    return segmentsArray.at(index).get(field) as FormControl;
+  }
 
   ngOnInit() {
     // Fermer le menu si on clique en dehors
@@ -677,12 +772,41 @@ export class ProfilePage implements OnInit {
       return;
     }
 
+    const roxzoneTime = formValue.roxzoneTime ? this.parseTimeToSeconds(formValue.roxzoneTime) : undefined;
+    const runTotal = formValue.runTotal ? this.parseTimeToSeconds(formValue.runTotal) : undefined;
+    const bestRunLap = formValue.bestRunLap ? this.parseTimeToSeconds(formValue.bestRunLap) : undefined;
+
+    // Construire le tableau des temps par segment
+    const times: Array<{ segment: string; timeSeconds: number; place?: number }> = [];
+    const segmentsArray = this.importForm.get('segments') as FormArray;
+
+    SEGMENTS.forEach((segment, index) => {
+      const segmentGroup = segmentsArray.at(index);
+      const timeStr = segmentGroup.get('time')?.value;
+      const placeStr = segmentGroup.get('place')?.value;
+
+      if (timeStr && timeStr.trim() !== '') {
+        const timeSeconds = this.parseTimeToSeconds(timeStr);
+        if (timeSeconds !== null) {
+          times.push({
+            segment: segment.key,
+            timeSeconds,
+            place: placeStr && placeStr.trim() !== '' ? parseInt(placeStr, 10) : undefined,
+          });
+        }
+      }
+    });
+
     const importData = {
       name: formValue.name!,
       city: formValue.city!,
       date: formValue.date!,
       category: formValue.category!,
       totalTime,
+      roxzoneTime,
+      runTotal,
+      bestRunLap,
+      times: times.length > 0 ? times : undefined,
       sourceUrl: formValue.sourceUrl || undefined,
       source: formValue.sourceUrl?.includes('results.hyrox.com') ? 'results.hyrox.com' : formValue.sourceUrl?.includes('hyresult.com') ? 'hyresult.com' : 'manual',
     };
