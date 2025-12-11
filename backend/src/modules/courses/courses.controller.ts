@@ -1,8 +1,10 @@
-import { Controller, Get, Post, Put, Delete, Body, Param, Query, UseGuards } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth, ApiQuery } from '@nestjs/swagger';
+import { Controller, Get, Post, Put, Delete, Body, Param, Query, UseGuards, UseInterceptors, UploadedFile } from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth, ApiQuery, ApiConsumes, ApiBody } from '@nestjs/swagger';
 import { CoursesService } from './courses.service';
 import { CreateCourseDto } from './dto/create-course.dto';
 import { UpdateCourseDto } from './dto/update-course.dto';
+import { ImportCourseDto } from './dto/import-course.dto';
 import { JwtAuthGuard } from '@/common/guards/jwt-auth.guard';
 import { CurrentUser } from '@/common/decorators/current-user.decorator';
 
@@ -19,6 +21,48 @@ export class CoursesController {
   @ApiResponse({ status: 400, description: 'Bad request' })
   async create(@Body() createCourseDto: CreateCourseDto, @CurrentUser() user: { userId: string }) {
     return this.coursesService.create(user.userId, createCourseDto);
+  }
+
+  // Routes d'import - IMPORTANT: Les routes plus spécifiques doivent être avant les routes plus générales
+  @Post('import/csv')
+  @UseInterceptors(FileInterceptor('file'))
+  @ApiOperation({ summary: 'Import courses from CSV file (results.hyrox.com export)' })
+  @ApiConsumes('multipart/form-data')
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        file: {
+          type: 'string',
+          format: 'binary',
+          description: 'CSV file exported from results.hyrox.com',
+        },
+      },
+    },
+  })
+  @ApiResponse({ status: 201, description: 'Courses imported successfully from CSV' })
+  @ApiResponse({ status: 400, description: 'Bad request - Invalid CSV file' })
+  async importFromCsv(
+    @UploadedFile() file: { buffer: Buffer; mimetype: string; originalname: string } | undefined,
+    @CurrentUser() user: { userId: string },
+  ) {
+    if (!file) {
+      throw new Error('No file uploaded');
+    }
+
+    if (!file.mimetype.includes('csv') && !file.originalname.endsWith('.csv')) {
+      throw new Error('File must be a CSV file');
+    }
+
+    return this.coursesService.importFromCsv(user.userId, file.buffer);
+  }
+
+  @Post('import')
+  @ApiOperation({ summary: 'Import a course from HyResult or external source (manual data)' })
+  @ApiResponse({ status: 201, description: 'Course imported successfully' })
+  @ApiResponse({ status: 400, description: 'Bad request' })
+  async importFromHyResult(@Body() importCourseDto: ImportCourseDto, @CurrentUser() user: { userId: string }) {
+    return this.coursesService.importFromHyResult(user.userId, importCourseDto);
   }
 
   @Get()

@@ -12,6 +12,17 @@ import { CurrentUser } from '@/common/decorators/current-user.decorator';
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
+  @Get('me')
+  @ApiOperation({ summary: 'Get current user profile' })
+  @ApiResponse({ status: 200, description: 'User retrieved successfully' })
+  async getCurrentUser(@CurrentUser() user: { userId: string }) {
+    const userData = await this.usersService.findById(user.userId);
+    return {
+      success: true,
+      data: userData,
+    };
+  }
+
   @Get(':id')
   @ApiOperation({ summary: 'Get user by ID' })
   @ApiResponse({ status: 200, description: 'User retrieved successfully' })

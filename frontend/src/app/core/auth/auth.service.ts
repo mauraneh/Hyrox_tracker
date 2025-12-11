@@ -3,25 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { tap } from 'rxjs/operators';
 import { environment } from '@environments/environment';
-
-interface User {
-  id: string;
-  email: string;
-  firstName: string;
-  lastName: string;
-  category?: string;
-  weight?: number;
-  height?: number;
-}
-
-interface AuthResponse {
-  success: boolean;
-  data: {
-    user: User;
-    accessToken: string;
-  };
-  message: string;
-}
+import { User, AuthResponse } from '../types/interfaces';
 
 @Injectable({
   providedIn: 'root',
