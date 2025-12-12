@@ -3,6 +3,7 @@ import { NotFoundException, ForbiddenException } from '@nestjs/common';
 import { CoursesService } from './courses.service';
 import { PrismaService } from '@/prisma/prisma.service';
 import { CreateCourseDto } from './dto/create-course.dto';
+import { CsvParserService } from '@/modules/courses/csv-parser.service';
 
 describe('CoursesService', () => {
   let service: CoursesService;
@@ -21,6 +22,7 @@ describe('CoursesService', () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         CoursesService,
+        CsvParserService,
         {
           provide: PrismaService,
           useValue: mockPrismaService,
@@ -69,7 +71,11 @@ describe('CoursesService', () => {
           totalTime: createCourseDto.totalTime,
           userId,
           times: {
-            create: createCourseDto.times,
+            create: createCourseDto.times.map((t) => ({
+              segment: t.segment,
+              timeSeconds: t.timeSeconds,
+              place: null,
+            })),
           },
         },
         include: { times: true },
