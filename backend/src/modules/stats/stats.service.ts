@@ -79,7 +79,16 @@ export class StatsService {
     });
 
     // Group times by segment
-    const stationStats: Record<string, { best: number; average: number; latest: number; bestPlace: number | null; averagePlace: number | null }> = {};
+    const stationStats: Record<
+      string,
+      {
+        best: number;
+        average: number;
+        latest: number;
+        bestPlace: number | null;
+        averagePlace: number | null;
+      }
+    > = {};
 
     courses.forEach((course) => {
       course.times.forEach((time) => {
@@ -165,21 +174,36 @@ export class StatsService {
       data: {
         roxzoneTime: {
           best: roxzoneTimes.length > 0 ? Math.min(...roxzoneTimes) : null,
-          average: roxzoneTimes.length > 0 ? Math.round(roxzoneTimes.reduce((a, b) => a + b, 0) / roxzoneTimes.length) : null,
+          average:
+            roxzoneTimes.length > 0
+              ? Math.round(roxzoneTimes.reduce((a, b) => a + b, 0) / roxzoneTimes.length)
+              : null,
           latest: roxzoneTimes.length > 0 ? roxzoneTimes[roxzoneTimes.length - 1] : null,
-          progression: courses.filter((c) => c.roxzoneTime !== null).map((c) => ({ date: c.date.toISOString(), value: c.roxzoneTime as number })),
+          progression: courses
+            .filter((c) => c.roxzoneTime !== null)
+            .map((c) => ({ date: c.date.toISOString(), value: c.roxzoneTime as number })),
         },
         runTotal: {
           best: runTotals.length > 0 ? Math.min(...runTotals) : null,
-          average: runTotals.length > 0 ? Math.round(runTotals.reduce((a, b) => a + b, 0) / runTotals.length) : null,
+          average:
+            runTotals.length > 0
+              ? Math.round(runTotals.reduce((a, b) => a + b, 0) / runTotals.length)
+              : null,
           latest: runTotals.length > 0 ? runTotals[runTotals.length - 1] : null,
-          progression: courses.filter((c) => c.runTotal !== null).map((c) => ({ date: c.date.toISOString(), value: c.runTotal as number })),
+          progression: courses
+            .filter((c) => c.runTotal !== null)
+            .map((c) => ({ date: c.date.toISOString(), value: c.runTotal as number })),
         },
         bestRunLap: {
           best: bestRunLaps.length > 0 ? Math.min(...bestRunLaps) : null,
-          average: bestRunLaps.length > 0 ? Math.round(bestRunLaps.reduce((a, b) => a + b, 0) / bestRunLaps.length) : null,
+          average:
+            bestRunLaps.length > 0
+              ? Math.round(bestRunLaps.reduce((a, b) => a + b, 0) / bestRunLaps.length)
+              : null,
           latest: bestRunLaps.length > 0 ? bestRunLaps[bestRunLaps.length - 1] : null,
-          progression: courses.filter((c) => c.bestRunLap !== null).map((c) => ({ date: c.date.toISOString(), value: c.bestRunLap as number })),
+          progression: courses
+            .filter((c) => c.bestRunLap !== null)
+            .map((c) => ({ date: c.date.toISOString(), value: c.bestRunLap as number })),
         },
       },
     };

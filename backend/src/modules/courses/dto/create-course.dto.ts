@@ -49,19 +49,31 @@ export class CreateCourseDto {
   @Min(0)
   totalTime: number;
 
-  @ApiProperty({ example: 347, description: 'Temps total des stations (Roxzone Time) en secondes', required: false })
+  @ApiProperty({
+    example: 347,
+    description: 'Temps total des stations (Roxzone Time) en secondes',
+    required: false,
+  })
   @IsOptional()
   @IsInt()
   @Min(0)
   roxzoneTime?: number;
 
-  @ApiProperty({ example: 2647, description: 'Temps total des runs (Run Total) en secondes', required: false })
+  @ApiProperty({
+    example: 2647,
+    description: 'Temps total des runs (Run Total) en secondes',
+    required: false,
+  })
   @IsOptional()
   @IsInt()
   @Min(0)
   runTotal?: number;
 
-  @ApiProperty({ example: 328, description: 'Meilleur temps de run (Best Run Lap) en secondes', required: false })
+  @ApiProperty({
+    example: 328,
+    description: 'Meilleur temps de run (Best Run Lap) en secondes',
+    required: false,
+  })
   @IsOptional()
   @IsInt()
   @Min(0)

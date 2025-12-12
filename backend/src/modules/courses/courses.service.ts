@@ -1,4 +1,9 @@
-import { Injectable, NotFoundException, ForbiddenException, BadRequestException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  ForbiddenException,
+  BadRequestException,
+} from '@nestjs/common';
 import { PrismaService } from '@/prisma/prisma.service';
 import { CreateCourseDto } from './dto/create-course.dto';
 import { UpdateCourseDto } from './dto/update-course.dto';
@@ -161,7 +166,7 @@ export class CoursesService {
   }
 
   async importFromHyResult(userId: string, importCourseDto: ImportCourseDto) {
-    const { times, sourceUrl, source, notes, ...courseData } = importCourseDto;
+    const { times, sourceUrl, notes, ...courseData } = importCourseDto;
 
     // Construire les notes en incluant la source si disponible
     let courseNotes = notes;
@@ -177,15 +182,18 @@ export class CoursesService {
         userId,
         date: new Date(importCourseDto.date),
         notes: courseNotes || null,
-        times: times && times.length > 0
-          ? {
-              create: times.map((time: { segment: string; timeSeconds: number; place?: number }) => ({
-                segment: time.segment,
-                timeSeconds: time.timeSeconds,
-                place: time.place || null,
-              })),
-            }
-          : undefined,
+        times:
+          times && times.length > 0
+            ? {
+                create: times.map(
+                  (time: { segment: string; timeSeconds: number; place?: number }) => ({
+                    segment: time.segment,
+                    timeSeconds: time.timeSeconds,
+                    place: time.place || null,
+                  }),
+                ),
+              }
+            : undefined,
       },
       include: {
         times: true,

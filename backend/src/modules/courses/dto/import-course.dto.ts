@@ -1,5 +1,13 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsString, IsOptional, IsInt, IsDateString, IsArray, ValidateNested, Min } from 'class-validator';
+import {
+  IsString,
+  IsOptional,
+  IsInt,
+  IsDateString,
+  IsArray,
+  ValidateNested,
+  Min,
+} from 'class-validator';
 import { Type } from 'class-transformer';
 
 class SegmentTimeDto {
@@ -39,19 +47,31 @@ export class ImportCourseDto {
   @IsInt()
   totalTime: number;
 
-  @ApiProperty({ example: 347, description: 'Temps total des stations (Roxzone Time) en secondes', required: false })
+  @ApiProperty({
+    example: 347,
+    description: 'Temps total des stations (Roxzone Time) en secondes',
+    required: false,
+  })
   @IsOptional()
   @IsInt()
   @Min(0)
   roxzoneTime?: number;
 
-  @ApiProperty({ example: 2647, description: 'Temps total des runs (Run Total) en secondes', required: false })
+  @ApiProperty({
+    example: 2647,
+    description: 'Temps total des runs (Run Total) en secondes',
+    required: false,
+  })
   @IsOptional()
   @IsInt()
   @Min(0)
   runTotal?: number;
 
-  @ApiProperty({ example: 328, description: 'Meilleur temps de run (Best Run Lap) en secondes', required: false })
+  @ApiProperty({
+    example: 328,
+    description: 'Meilleur temps de run (Best Run Lap) en secondes',
+    required: false,
+  })
   @IsOptional()
   @IsInt()
   @Min(0)
@@ -83,7 +103,7 @@ export class ImportCourseDto {
 
   @ApiProperty({
     example: 'results.hyrox.com',
-    description: 'Source de l\'import (results.hyrox.com, hyresult.com, manual)',
+    description: "Source de l'import (results.hyrox.com, hyresult.com, manual)",
     required: false,
     default: 'manual',
   })
@@ -91,9 +111,12 @@ export class ImportCourseDto {
   @IsString()
   source?: string;
 
-  @ApiProperty({ example: 'Position: 45/200', description: 'Notes additionnelles', required: false })
+  @ApiProperty({
+    example: 'Position: 45/200',
+    description: 'Notes additionnelles',
+    required: false,
+  })
   @IsOptional()
   @IsString()
   notes?: string;
 }
-

@@ -1,6 +1,26 @@
-import { Controller, Get, Post, Put, Delete, Body, Param, Query, UseGuards, UseInterceptors, UploadedFile } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Put,
+  Delete,
+  Body,
+  Param,
+  Query,
+  UseGuards,
+  UseInterceptors,
+  UploadedFile,
+} from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth, ApiQuery, ApiConsumes, ApiBody } from '@nestjs/swagger';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiResponse,
+  ApiBearerAuth,
+  ApiQuery,
+  ApiConsumes,
+  ApiBody,
+} from '@nestjs/swagger';
 import { CoursesService } from './courses.service';
 import { CreateCourseDto } from './dto/create-course.dto';
 import { UpdateCourseDto } from './dto/update-course.dto';
@@ -61,7 +81,10 @@ export class CoursesController {
   @ApiOperation({ summary: 'Import a course from HyResult or external source (manual data)' })
   @ApiResponse({ status: 201, description: 'Course imported successfully' })
   @ApiResponse({ status: 400, description: 'Bad request' })
-  async importFromHyResult(@Body() importCourseDto: ImportCourseDto, @CurrentUser() user: { userId: string }) {
+  async importFromHyResult(
+    @Body() importCourseDto: ImportCourseDto,
+    @CurrentUser() user: { userId: string },
+  ) {
     return this.coursesService.importFromHyResult(user.userId, importCourseDto);
   }
 

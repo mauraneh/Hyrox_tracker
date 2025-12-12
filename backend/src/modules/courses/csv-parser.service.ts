@@ -5,11 +5,11 @@ import { Readable } from 'stream';
 interface HyroxCsvRow {
   'Last name'?: string;
   'First Name'?: string;
-  'Gender'?: string;
+  Gender?: string;
   'Age Group'?: string;
-  'Nationality'?: string;
-  'Race'?: string;
-  'Division'?: string;
+  Nationality?: string;
+  Race?: string;
+  Division?: string;
   'Total Time'?: string;
   'Run 1'?: string;
   'Sled Push'?: string;
@@ -18,7 +18,7 @@ interface HyroxCsvRow {
   'Run 3'?: string;
   'Burpee Broad Jump'?: string;
   'Run 4'?: string;
-  'Row'?: string;
+  Row?: string;
   'Run 5'?: string;
   'Farmer Carry'?: string;
   'Run 6'?: string;
@@ -34,16 +34,18 @@ export class CsvParserService {
   /**
    * Parse un fichier CSV de results.hyrox.com et retourne les données formatées
    */
-  async parseHyroxCsv(csvBuffer: Buffer): Promise<Array<{
-    name: string;
-    city: string;
-    date: string;
-    category: string;
-    totalTime: number;
-    times?: Array<{ segment: string; timeSeconds: number }>;
-    source?: string;
-    notes?: string;
-  }>> {
+  async parseHyroxCsv(csvBuffer: Buffer): Promise<
+    Array<{
+      name: string;
+      city: string;
+      date: string;
+      category: string;
+      totalTime: number;
+      times?: Array<{ segment: string; timeSeconds: number }>;
+      source?: string;
+      notes?: string;
+    }>
+  > {
     return new Promise((resolve, reject) => {
       const results: Array<{
         name: string;
@@ -131,11 +133,8 @@ export class CsvParserService {
     return null;
   }
 
-  /**
-   * Parse les temps par segment
-   */
-  private parseSegmentTimes(row: HyroxCsvRow): any[] {
-    const segments = [
+  private parseSegmentTimes(row: HyroxCsvRow): Array<{ segment: string; timeSeconds: number }> {
+    const segments: Array<{ key: keyof HyroxCsvRow; segment: string }> = [
       { key: 'Run 1', segment: 'run1' },
       { key: 'Sled Push', segment: 'sledPush' },
       { key: 'Run 2', segment: 'run2' },
@@ -153,7 +152,7 @@ export class CsvParserService {
       { key: 'Run 8', segment: 'run8' },
     ];
 
-    const times: any[] = [];
+    const times: Array<{ segment: string; timeSeconds: number }> = [];
 
     for (const { key, segment } of segments) {
       const timeValue = row[key];
@@ -206,4 +205,3 @@ export class CsvParserService {
     return notes.join(' | ');
   }
 }
-

@@ -63,4 +63,3 @@ export class GoalsController {
     return this.goalsService.remove(id, user.userId);
   }
 }
-
