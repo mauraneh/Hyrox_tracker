@@ -1,22 +1,17 @@
 # Stage 1: Build
 FROM node:20-alpine AS builder
-
 WORKDIR /app
 
-# Copy package files
+## Necessaire pour le BCRYPT côté Backend
+RUN apk add --no-cache python3 make g++ libc6-compat
+
 COPY package*.json ./
 COPY prisma ./prisma/
 
-# Install dependencies
 RUN npm ci
 
-# Copy source code
 COPY . .
-
-# Generate Prisma Client
 RUN npx prisma generate
-
-# Build the application
 RUN npm run build
 
 # Stage 2: Development
