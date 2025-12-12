@@ -35,11 +35,13 @@ export interface StatsOverview {
   bestTime: number | null;
   latestTime: number | null;
   averageTime: number | null;
-  nextHyrox: {
-    name: string;
-    city: string;
-    date: string;
-  } | null;
+  nextHyrox:
+    | {
+        name: string;
+        city: string;
+        date: string;
+      }
+    | null;
   improvement: number | null;
 }
 
@@ -57,16 +59,4 @@ export interface StationStats {
   latest: number;
   bestPlace: number | null;
   averagePlace: number | null;
-}
-
-export interface BestAvgLatest {
-  best: number | null;
-  average: number | null;
-  latest: number | null;
-}
-
-export interface RoxzoneStats {
-  roxzoneTime: BestAvgLatest;
-  runTotal: BestAvgLatest;
-  bestRunLap: BestAvgLatest;
 }

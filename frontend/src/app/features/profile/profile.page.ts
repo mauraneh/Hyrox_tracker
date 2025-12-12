@@ -47,7 +47,11 @@ const SEGMENTS = [
             <div class="flex items-center space-x-4">
               <!-- Menu utilisateur -->
               <div class="relative user-menu-container">
-                <button (click)="toggleUserMenu($event)" class="flex items-center space-x-2 text-sm text-white hover:text-hyrox-yellow cursor-pointer font-semibold transition-colors bg-transparent border-none p-2 rounded-lg hover:bg-hyrox-gray-800">
+                <button
+                  (click)="toggleUserMenu($event)"
+                  (keydown.enter)="toggleUserMenu($event)"
+                  class="flex items-center space-x-2 text-sm text-white hover:text-hyrox-yellow cursor-pointer font-semibold transition-colors bg-transparent border-none p-2 rounded-lg hover:bg-hyrox-gray-800"
+                >
                   <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                   </svg>
@@ -58,7 +62,7 @@ const SEGMENTS = [
                 </button>
                 
                 @if (showUserMenu()) {
-                <div (click)="$event.stopPropagation()" class="absolute right-0 mt-2 w-48 bg-hyrox-gray-900 rounded-lg shadow-xl border-2 border-hyrox-yellow py-1 z-50">
+                <div class="absolute right-0 mt-2 w-48 bg-hyrox-gray-900 rounded-lg shadow-xl border-2 border-hyrox-yellow py-1 z-50">
                   <a routerLink="/profile" (click)="closeUserMenu()" class="block px-4 py-2 text-sm text-white hover:bg-hyrox-gray-800 hover:text-hyrox-yellow transition-colors">
                     <div class="flex items-center space-x-2">
                       <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -279,6 +283,7 @@ const SEGMENTS = [
                   <div>
                     <label class="label" for="importTime">Temps total (H:MM:SS)</label>
                     <input type="text" id="importTime" class="input" formControlName="totalTime" placeholder="1:30:00" />
+                    <p class="mt-1 text-xs text-hyrox-gray-500">Format: H:MM:SS</p>
                   </div>
                 </div>
 
@@ -313,11 +318,12 @@ const SEGMENTS = [
                     @for (segment of SEGMENTS; track segment.key; let i = $index) {
                     <div class="grid grid-cols-1 md:grid-cols-4 gap-2 p-2 bg-hyrox-gray-800 rounded text-sm border border-hyrox-gray-700">
                       <div class="md:col-span-1 flex items-center">
-                        <label class="text-xs font-medium text-white">{{ segment.label }}</label>
+                        <label class="text-xs font-medium text-white" for="import-segment-time-{{i}}">{{ segment.label }}</label>
                       </div>
                       <div>
-                        <label class="text-xs text-hyrox-gray-400">Temps (MM:SS)</label>
+                        <label class="text-xs text-hyrox-gray-400" for="import-segment-time-{{i}}">Temps (MM:SS)</label>
                         <input
+                          id="import-segment-time-{{i}}"
                           type="text"
                           class="input text-xs py-1"
                           [formControl]="getSegmentControl(i, 'time')"
@@ -325,8 +331,9 @@ const SEGMENTS = [
                         />
                       </div>
                       <div>
-                        <label class="text-xs text-hyrox-gray-400">Position</label>
+                        <label class="text-xs text-hyrox-gray-400" for="import-segment-place-{{i}}">Position</label>
                         <input
+                          id="import-segment-place-{{i}}"
                           type="number"
                           class="input text-xs py-1"
                           [formControl]="getSegmentControl(i, 'place')"
@@ -370,7 +377,7 @@ const SEGMENTS = [
           @if (showGoalForm()) {
           <div class="mb-6 p-4 bg-hyrox-gray-800 rounded-lg border border-hyrox-gray-700">
             <h3 class="text-lg font-semibold text-white mb-4">
-              {{ editingGoal() ? 'Modifier l\'objectif' : 'Nouvel objectif' }}
+              {{ editingGoal() ? "Modifier l'objectif" : 'Nouvel objectif' }}
             </h3>
             <form [formGroup]="goalForm" (ngSubmit)="saveGoal()">
               <div class="space-y-4">
@@ -576,7 +583,7 @@ export class ProfilePage implements OnInit {
         height: formValue.height ? Number(formValue.height) : null,
       })
       .subscribe({
-        next: (response) => {
+        next: () => {
           this.profileSuccess.set('Profil mis à jour avec succès');
           this.#authService.loadCurrentUser();
           this.isUpdatingProfile.set(false);
@@ -740,9 +747,10 @@ export class ProfilePage implements OnInit {
     const formData = new FormData();
     formData.append('file', file);
 
-    this.#http.post<{ success: boolean; data: any[]; message: string }>(`${environment.apiUrl}/courses/import/csv`, formData).subscribe({
+    this.#http.post<{ success: boolean; data: unknown; message?: string }>(`${environment.apiUrl}/courses/import/csv`, formData).subscribe({
       next: (response) => {
-        this.importSuccess.set(response.message || `${response.data.length} course(s) importée(s) avec succès`);
+        const importedCount = Array.isArray(response.data) ? response.data.length : 0;
+        this.importSuccess.set(response.message || `${importedCount} course(s) importée(s) avec succès`);
         this.selectedFile.set(null);
         this.isImportingCsv.set(false);
         // Réinitialiser l'input file
@@ -811,7 +819,7 @@ export class ProfilePage implements OnInit {
       source: formValue.sourceUrl?.includes('results.hyrox.com') ? 'results.hyrox.com' : formValue.sourceUrl?.includes('hyresult.com') ? 'hyresult.com' : 'manual',
     };
 
-    this.#http.post<{ success: boolean; data: any; message: string }>(`${environment.apiUrl}/courses/import`, importData).subscribe({
+    this.#http.post<{ success: boolean; data: unknown; message?: string }>(`${environment.apiUrl}/courses/import`, importData).subscribe({
       next: (response) => {
         this.importSuccess.set(response.message || 'Course importée avec succès');
         this.importForm.reset();

@@ -26,7 +26,11 @@ import { environment } from '@environments/environment';
             <div class="flex items-center space-x-4">
               <!-- Menu utilisateur -->
               <div class="relative user-menu-container">
-                <button (click)="toggleUserMenu($event)" class="flex items-center space-x-2 text-sm text-hyrox-gray-400 hover:text-primary-500 dark:hover:text-primary-400 cursor-pointer font-medium transition-colors bg-transparent border-none p-2 rounded-lg hover:bg-hyrox-gray-800">
+                <button
+                  (click)="toggleUserMenu($event)"
+                  (keydown.enter)="toggleUserMenu($event)"
+                  class="flex items-center space-x-2 text-sm text-hyrox-gray-400 hover:text-primary-500 dark:hover:text-primary-400 cursor-pointer font-medium transition-colors bg-transparent border-none p-2 rounded-lg hover:bg-hyrox-gray-800"
+                >
                   <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                   </svg>
@@ -37,7 +41,7 @@ import { environment } from '@environments/environment';
                 </button>
                 
                 @if (showUserMenu()) {
-                <div (click)="$event.stopPropagation()" class="absolute right-0 mt-2 w-48 bg-hyrox-gray-900 rounded-lg shadow-lg border border-hyrox-gray-700 py-1 z-50">
+                <div class="absolute right-0 mt-2 w-48 bg-hyrox-gray-900 rounded-lg shadow-lg border border-hyrox-gray-700 py-1 z-50">
                   <a routerLink="/profile" (click)="closeUserMenu()" class="block px-4 py-2 text-sm text-white hover:bg-hyrox-gray-800">
                     <div class="flex items-center space-x-2">
                       <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">

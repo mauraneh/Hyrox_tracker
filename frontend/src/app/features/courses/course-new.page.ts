@@ -46,7 +46,11 @@ const SEGMENTS = [
             <div class="flex items-center space-x-4">
               <!-- Menu utilisateur -->
               <div class="relative user-menu-container">
-                <button (click)="toggleUserMenu($event)" class="flex items-center space-x-2 text-sm text-hyrox-gray-400 hover:text-primary-500 dark:hover:text-primary-400 cursor-pointer font-medium transition-colors bg-transparent border-none p-2 rounded-lg hover:bg-hyrox-gray-800">
+                <button
+                  (click)="toggleUserMenu($event)"
+                  (keydown.enter)="toggleUserMenu($event)"
+                  class="flex items-center space-x-2 text-sm text-hyrox-gray-400 hover:text-primary-500 dark:hover:text-primary-400 cursor-pointer font-medium transition-colors bg-transparent border-none p-2 rounded-lg hover:bg-hyrox-gray-800"
+                >
                   <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                   </svg>
@@ -57,7 +61,7 @@ const SEGMENTS = [
                 </button>
                 
                 @if (showUserMenu()) {
-                <div (click)="$event.stopPropagation()" class="absolute right-0 mt-2 w-48 bg-hyrox-gray-900 rounded-lg shadow-lg border border-hyrox-gray-700 py-1 z-50">
+                <div class="absolute right-0 mt-2 w-48 bg-hyrox-gray-900 rounded-lg shadow-lg border border-hyrox-gray-700 py-1 z-50">
                   <a routerLink="/profile" (click)="closeUserMenu()" class="block px-4 py-2 text-sm text-white hover:bg-hyrox-gray-800">
                     <div class="flex items-center space-x-2">
                       <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -179,11 +183,12 @@ const SEGMENTS = [
               @for (segment of SEGMENTS; track segment.key; let i = $index) {
               <div class="grid grid-cols-1 md:grid-cols-4 gap-4 p-4 bg-dark-50 dark:bg-hyrox-gray-800 rounded-lg">
                 <div class="md:col-span-1">
-                  <label class="label text-sm font-medium">{{ segment.label }}</label>
+                  <label class="label text-sm font-medium" for="segment-time-{{i}}">{{ segment.label }}</label>
                 </div>
                 <div>
-                  <label class="label text-xs">Temps (MM:SS ou H:MM:SS)</label>
+                  <label class="label text-xs" for="segment-time-{{i}}">Temps (MM:SS ou H:MM:SS)</label>
                   <input
+                    id="segment-time-{{i}}"
                     type="text"
                     class="input text-sm"
                     [formControl]="getSegmentControl(i, 'time')"
@@ -191,8 +196,9 @@ const SEGMENTS = [
                   />
                 </div>
                 <div>
-                  <label class="label text-xs">Position (optionnel)</label>
+                  <label class="label text-xs" for="segment-place-{{i}}">Position (optionnel)</label>
                   <input
+                    id="segment-place-{{i}}"
                     type="number"
                     class="input text-sm"
                     [formControl]="getSegmentControl(i, 'place')"
@@ -351,7 +357,7 @@ export class CourseNewPage {
       times,
     };
 
-    this.#http.post<{ success: boolean; data: any; message: string }>(`${environment.apiUrl}/courses`, courseData).subscribe({
+    this.#http.post<{ success: boolean; data: unknown; message?: string }>(`${environment.apiUrl}/courses`, courseData).subscribe({
       next: (response) => {
         this.success.set(response.message || 'Course créée avec succès');
         this.isSubmitting.set(false);
@@ -366,4 +372,3 @@ export class CourseNewPage {
     });
   }
 }
-

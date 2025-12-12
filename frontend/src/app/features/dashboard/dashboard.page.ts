@@ -1,6 +1,6 @@
 import { Component, OnInit, inject, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { RouterLink, Router } from '@angular/router';
+import { RouterLink } from '@angular/router';
 import { AuthService } from '@core/auth/auth.service';
 import { environment } from '@environments/environment';
 import { CommonModule } from '@angular/common';
@@ -27,7 +27,11 @@ import { StatsOverview } from '@core/types/interfaces';
             <div class="flex items-center space-x-4">
               <!-- Menu utilisateur -->
               <div class="relative user-menu-container">
-                <button (click)="toggleUserMenu($event)" class="flex items-center space-x-2 text-sm text-white hover:text-hyrox-yellow cursor-pointer font-semibold transition-colors bg-transparent border-none p-2 rounded-lg hover:bg-hyrox-gray-800">
+                <button
+                  (click)="toggleUserMenu($event)"
+                  (keydown.enter)="toggleUserMenu($event)"
+                  class="flex items-center space-x-2 text-sm text-white hover:text-hyrox-yellow cursor-pointer font-semibold transition-colors bg-transparent border-none p-2 rounded-lg hover:bg-hyrox-gray-800"
+                >
                   <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                   </svg>
@@ -38,7 +42,7 @@ import { StatsOverview } from '@core/types/interfaces';
                 </button>
                 
                 @if (showUserMenu()) {
-                <div (click)="$event.stopPropagation()" class="absolute right-0 mt-2 w-48 bg-hyrox-gray-900 rounded-lg shadow-xl border-2 border-hyrox-yellow py-1 z-50">
+                <div class="absolute right-0 mt-2 w-48 bg-hyrox-gray-900 rounded-lg shadow-xl border-2 border-hyrox-yellow py-1 z-50">
                   <a routerLink="/profile" (click)="closeUserMenu()" class="block px-4 py-2 text-sm text-white hover:bg-hyrox-gray-800 hover:text-hyrox-yellow transition-colors">
                     <div class="flex items-center space-x-2">
                       <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -147,7 +151,6 @@ import { StatsOverview } from '@core/types/interfaces';
 export class DashboardPage implements OnInit {
   #authService = inject(AuthService);
   #http = inject(HttpClient);
-  #router = inject(Router);
 
   currentUser = this.#authService.currentUser;
   stats = signal<StatsOverview | null>(null);
@@ -210,5 +213,3 @@ export class DashboardPage implements OnInit {
     });
   }
 }
-
-

@@ -5,7 +5,8 @@ import { CommonModule } from '@angular/common';
 import { AuthService } from '@core/auth/auth.service';
 import { environment } from '@environments/environment';
 import { forkJoin } from 'rxjs';
-import { StatsOverview, ProgressionData, StationStats } from '@core/types/interfaces';
+import { StatsOverview, ProgressionData, StationStats, RoxzoneStats } from '@core/types/interfaces';
+import {  } from '@core/types/interfaces';
 
 @Component({
   selector: 'app-stats',
@@ -28,7 +29,11 @@ import { StatsOverview, ProgressionData, StationStats } from '@core/types/interf
             <div class="flex items-center space-x-4">
               <!-- Menu utilisateur -->
               <div class="relative user-menu-container">
-                <button (click)="toggleUserMenu($event)" class="flex items-center space-x-2 text-sm text-hyrox-gray-400 hover:text-primary-500 dark:hover:text-primary-400 cursor-pointer font-medium transition-colors bg-transparent border-none p-2 rounded-lg hover:bg-hyrox-gray-800">
+                <button
+                  (click)="toggleUserMenu($event)"
+                  (keydown.enter)="toggleUserMenu($event)"
+                  class="flex items-center space-x-2 text-sm text-hyrox-gray-400 hover:text-primary-500 dark:hover:text-primary-400 cursor-pointer font-medium transition-colors bg-transparent border-none p-2 rounded-lg hover:bg-hyrox-gray-800"
+                >
                   <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                   </svg>
@@ -39,8 +44,8 @@ import { StatsOverview, ProgressionData, StationStats } from '@core/types/interf
                 </button>
                 
                 @if (showUserMenu()) {
-                <div (click)="$event.stopPropagation()" class="absolute right-0 mt-2 w-48 bg-hyrox-gray-900 rounded-lg shadow-lg border border-hyrox-gray-700 py-1 z-50">
-                  <a routerLink="/profile" (click)="closeUserMenu()" class="block px-4 py-2 text-sm text-white hover:bg-hyrox-gray-800">
+                <div class="absolute right-0 mt-2 w-48 bg-hyrox-gray-900 rounded-lg shadow-lg border border-hyrox-gray-700 py-1 z-50">
+                  <a routerLink="/profile" (click)="$event.stopPropagation(); closeUserMenu()" class="block px-4 py-2 text-sm text-white hover:bg-hyrox-gray-800">
                     <div class="flex items-center space-x-2">
                       <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
@@ -329,7 +334,7 @@ export class StatsPage implements OnInit {
   overview = signal<StatsOverview | null>(null);
   progression = signal<ProgressionData[]>([]);
   stationStats = signal<Record<string, StationStats> | null>(null);
-  roxzoneStats = signal<any>(null);
+  roxzoneStats = signal<RoxzoneStats | null>(null);
   isLoading = signal(true);
   showUserMenu = signal(false);
 
@@ -354,7 +359,7 @@ export class StatsPage implements OnInit {
       overview: this.#http.get<{ success: boolean; data: StatsOverview }>(`${environment.apiUrl}/stats/overview`),
       progression: this.#http.get<{ success: boolean; data: ProgressionData[] }>(`${environment.apiUrl}/stats/progression`),
       stations: this.#http.get<{ success: boolean; data: Record<string, StationStats> }>(`${environment.apiUrl}/stats/stations`),
-      roxzone: this.#http.get<{ success: boolean; data: any }>(`${environment.apiUrl}/stats/roxzone`),
+      roxzone: this.#http.get<{ success: boolean; data: RoxzoneStats }>(`${environment.apiUrl}/stats/roxzone`)
     }).subscribe({
       next: (responses) => {
         if (responses.overview.success) {
@@ -437,7 +442,7 @@ export class StatsPage implements OnInit {
   }
 
   roundPlace(place: number | null): number {
-    if (place === null) return 0;
+    if (place === null || Number.isNaN(place)) return 0;
     return Math.round(place);
   }
 }
