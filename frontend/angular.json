@@ -57,6 +57,17 @@
                 }
               ]
             },
+            "staging": {
+              "optimization": true,
+              "sourceMap": true,
+              "namedChunks": true,
+              "fileReplacements": [
+                {
+                  "replace": "src/environments/environment.ts",
+                  "with": "src/environments/environment.staging.ts"
+                }
+              ]
+            },
             "development": {
               "optimization": false,
               "extractLicenses": false,
@@ -104,6 +115,9 @@
         }
       }
     }
+  },
+  "cli": {
+    "analytics": "68118eaf-848e-4d5b-8cdf-c485a6d04abe"
   }
 }
 
