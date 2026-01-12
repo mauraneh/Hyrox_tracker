@@ -8,7 +8,7 @@ export class HealthController {
   constructor(private readonly prisma: PrismaService) {}
 
   @Get()
-  @ApiOperation({ summary: 'Health check endpoint' })
+  @ApiOperation({ summary: 'Health check endpoint - checks database' })
   @ApiResponse({ status: 200, description: 'Service is healthy' })
   @ApiResponse({ status: 503, description: 'Service is unhealthy' })
   async check() {
@@ -30,5 +30,17 @@ export class HealthController {
         error: error instanceof Error ? error.message : 'Unknown error',
       };
     }
+  }
+
+  @Get('liveness')
+  @ApiOperation({ summary: 'Liveness probe - does not check database' })
+  @ApiResponse({ status: 200, description: 'Service is alive' })
+  liveness() {
+    // Simple liveness check that doesn't require database
+    return {
+      status: 'ok',
+      timestamp: new Date().toISOString(),
+      uptime: process.uptime(),
+    };
   }
 }
