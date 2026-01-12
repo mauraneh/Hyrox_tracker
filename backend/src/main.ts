@@ -60,6 +60,8 @@ async function bootstrap() {
     SwaggerModule.setup('api/docs', app, document);
 
     const port = process.env.PORT || 3000;
+    console.log(`🔌 Attempting to listen on port ${port}...`);
+    
     await app.listen(port);
 
     console.log(`✅ Application is running on: http://localhost:${port}`);
@@ -67,6 +69,7 @@ async function bootstrap() {
     console.log(`❤️  Health check: http://localhost:${port}/api/health/liveness`);
   } catch (error) {
     console.error('❌ Failed to start application:', error);
+    console.error('Error stack:', error instanceof Error ? error.stack : 'No stack trace');
     process.exit(1);
   }
 }

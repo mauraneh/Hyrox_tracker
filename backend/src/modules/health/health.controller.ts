@@ -37,10 +37,14 @@ export class HealthController {
   @ApiResponse({ status: 200, description: 'Service is alive' })
   liveness() {
     // Simple liveness check that doesn't require database
+    // This endpoint must respond quickly for Railway healthcheck
+    // No database dependency - just confirms the app is running
+    console.log('❤️  Liveness check called');
     return {
       status: 'ok',
       timestamp: new Date().toISOString(),
       uptime: process.uptime(),
+      service: 'hyrox-tracker-api',
     };
   }
 }
