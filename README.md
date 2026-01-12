@@ -12,42 +12,45 @@ Application de suivi des performances Hyrox avec Angular et NestJS.
 
 ### Développement local
 
+1. Lancer tous les services :
+
 ```bash
 docker-compose up -d
 ```
 
-### Staging
-
-1. Copier `.env.staging.example` vers `.env.staging`
-2. Remplir les variables d'environnement
-3. Lancer le seeding staging :
+2. Appliquer les migrations de base de données :
 
 ```bash
-cd backend
-npm run prisma:seed:staging
+docker exec -it hyrox-backend npx prisma migrate deploy
 ```
 
-4. Démarrer avec docker-compose :
+3. (Optionnel) Remplir la base avec des données de test :
 
 ```bash
-docker-compose -f docker-compose.staging.yml --env-file .env.staging up -d
+docker exec -it hyrox-backend npm run prisma:seed
 ```
 
-### Production
+4. Accéder à l'application :
 
-1. Copier `.env.production.example` vers `.env.production`
-2. Remplir les variables d'environnement
-3. Lancer le seeding production :
+- **Frontend** : http://localhost:4200
+- **Backend API** : http://localhost:3000
+- **API Documentation (Swagger)** : http://localhost:3000/api
 
-```bash
-cd backend
-npm run prisma:seed:production
-```
-
-4. Démarrer avec docker-compose :
+#### Commandes utiles
 
 ```bash
-docker-compose -f docker-compose.production.yml --env-file .env.production up -d
+# Voir les logs
+docker-compose logs -f backend
+
+# Arrêter les services
+docker-compose down
+
+# Redémarrer un service
+docker-compose restart backend
+
+# Accéder à Prisma Studio (interface graphique pour la base de données)
+docker exec -it hyrox-backend npx prisma studio
+# Puis ouvrir http://localhost:5555
 ```
 
 ## Architecture
