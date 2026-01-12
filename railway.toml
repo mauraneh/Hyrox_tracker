@@ -3,7 +3,7 @@ builder = "DOCKERFILE"
 dockerfilePath = "Dockerfile"
 
 [deploy]
-startCommand = "node dist/main.js"
+startCommand = "./scripts/start.sh"
 healthcheckPath = "/api/health/liveness"
 healthcheckTimeout = 300
 restartPolicyType = "ON_FAILURE"
