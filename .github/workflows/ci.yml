@@ -193,7 +193,6 @@ jobs:
           push: false
           tags: hyrox-backend:latest
           cache-from: type=gha
-          cache-to: type=gha,mode=max
 
       - name: Build frontend image
         uses: docker/build-push-action@v5
@@ -204,7 +203,6 @@ jobs:
           push: false
           tags: hyrox-frontend:latest
           cache-from: type=gha
-          cache-to: type=gha,mode=max
 
   security-audit:
     name: Security Audit

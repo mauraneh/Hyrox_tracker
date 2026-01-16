@@ -46,7 +46,6 @@ jobs:
           push: true
           tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-backend:staging
           cache-from: type=gha
-          cache-to: type=gha,mode=max
 
       - name: Build and push frontend image (staging)
         uses: docker/build-push-action@v5
@@ -57,7 +56,6 @@ jobs:
           push: true
           tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-frontend:staging
           cache-from: type=gha
-          cache-to: type=gha,mode=max
 
   deploy:
     name: Deploy to Staging
