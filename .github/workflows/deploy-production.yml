@@ -2,7 +2,7 @@ name: Deploy to Production
 
 on:
   workflow_run:
-    workflows: ["CI Pipeline"]
+    workflows: ["Deploy to Staging"]
     branches: [main]
     types:
       - completed
@@ -13,13 +13,12 @@ env:
 
 jobs:
   build-and-push:
-    name: Build and Push Docker Images
+    name: Build and Push Docker Images (Production)
     runs-on: ubuntu-latest
     permissions:
       contents: read
       packages: write
 
-    #  Si success du précédent workflow, ca lance celui la.
     if: ${{ github.event.workflow_run.conclusion == 'success' }}
 
     steps:
@@ -36,7 +35,7 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Build and push backend image
+      - name: Build and push backend image (prod)
         uses: docker/build-push-action@v5
         with:
           context: ./backend
@@ -49,7 +48,7 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
-      - name: Build and push frontend image
+      - name: Build and push frontend image (prod)
         uses: docker/build-push-action@v5
         with:
           context: ./frontend

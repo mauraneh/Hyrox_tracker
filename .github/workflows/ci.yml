@@ -2,7 +2,7 @@ name: CI Pipeline
 
 on:
   push:
-    branches: [main, develop]
+    branches: [main]
 
 env:
   NODE_VERSION: '20'
@@ -164,4 +164,3 @@ jobs:
           cd frontend
           npm audit --audit-level=moderate || true
         continue-on-error: true
-
