@@ -1,5 +1,4 @@
 export const environment = {
   production: false,
-  apiUrl: 'http://APIStagging/api',
+  apiUrl: "https://hyroxtracker-staging.railway.app",
 };
-
