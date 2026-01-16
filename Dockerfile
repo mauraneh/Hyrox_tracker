@@ -1,6 +1,3 @@
-# Dockerfile à la racine (utilisé par Railway)
-# Le backend est utilisé comme contexte logique
-
 # =========================
 # Stage 1: Build
 # =========================
@@ -49,7 +46,6 @@ RUN addgroup -g 1001 -S nodejs && \
 
 USER nestjs
 
-# Railway injecte PORT dynamiquement
 EXPOSE 3000
 
 # Démarrage simple (comme en CI / staging)

@@ -10,8 +10,6 @@ export class PrismaService extends PrismaClient implements OnModuleInit, OnModul
   {
     this.logger.log('🔄 Attempting to connect to database...');
 
-    // Ne JAMAIS bloquer le bootstrap Nest sur la DB (sinon Railway healthcheck => 503)
-    // On fait un "best effort" avec timeout + retries en arrière-plan.
     void this.connectWithRetry();
   }
 
