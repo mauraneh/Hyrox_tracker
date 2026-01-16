@@ -95,9 +95,9 @@ describe('CoursesService', () => {
     it('should throw error if required fields are missing', async () => {
       // 🔹 Test validation DTO
       const userId = 'user-id';
-      const createCourseDto: Partial<CreateCourseDto> = {
+      const createCourseDto = {
         city: 'Paris',
-      };
+      } as CreateCourseDto;
 
       await expect(service.create(userId, createCourseDto)).rejects.toThrow();
     });
