@@ -18,10 +18,12 @@ async function bootstrap() {
     // Security
     app.use(helmet());
 
-    // CORS - Support multiple origins
-    const corsOrigins = process.env.CORS_ORIGIN
-      ? process.env.CORS_ORIGIN.split(',').map((origin) => origin.trim())
-      : ['http://localhost:4200'];
+   const corsOrigins = process.env.NODE_ENV === 'production'
+  ? process.env.CORS_ORIGIN_PROD?.split(',').map(origin => origin.trim())
+  : process.env.NODE_ENV === 'staging'
+    ? process.env.CORS_ORIGIN_STAGING?.split(',').map(origin => origin.trim())
+    : ['http://localhost:4200'];
+
 
     console.log(`🌍 CORS Origins: ${corsOrigins.join(', ')}`);
 
