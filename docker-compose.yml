@@ -1,4 +1,7 @@
 services:
+  # =========================
+  # LOCAL
+  # =========================
   postgres:
     image: postgres:15-alpine
     container_name: hyrox-db
@@ -93,6 +96,30 @@ services:
       - backend
     command: npm start
 
+  # =========================
+  # STAGING (Supabase remote DB)
+  # =========================
+  db-init-staging:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+      target: development
+    container_name: hyrox-db-init-staging
+    restart: "no"
+    environment:
+      NODE_ENV: staging
+      DATABASE_URL: ${DATABASE_URL_STAGING}
+    networks:
+      - hyrox-network
+    profiles:
+      - staging
+    command: >
+      sh -c "
+        npm run prisma:generate &&
+        npx prisma migrate deploy &&
+        npm run prisma:seed:staging
+      "
+
   backend-staging:
     build:
       context: ./backend
@@ -109,6 +136,9 @@ services:
       JWT_SECRET: ${JWT_SECRET_STAGING}
       JWT_EXPIRATION: ${JWT_EXPIRATION:-7d}
       CORS_ORIGIN: ${CORS_ORIGIN_STAGING}
+    depends_on:
+      db-init-staging:
+        condition: service_completed_successfully
     networks:
       - hyrox-network
     profiles:
@@ -130,6 +160,30 @@ services:
     profiles:
       - staging
 
+  # =========================
+  # PRODUCTION (Supabase remote DB)
+  # =========================
+  db-init-prod:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+      target: development
+    container_name: hyrox-db-init-prod
+    restart: "no"
+    environment:
+      NODE_ENV: production
+      DATABASE_URL: ${DATABASE_URL_PROD}
+    networks:
+      - hyrox-network
+    profiles:
+      - production
+    command: >
+      sh -c "
+        npm run prisma:generate &&
+        npx prisma migrate deploy &&
+        npm run prisma:seed:production
+      "
+
   backend-prod:
     build:
       context: ./backend
@@ -146,6 +200,9 @@ services:
       JWT_SECRET: ${JWT_SECRET_PROD}
       JWT_EXPIRATION: ${JWT_EXPIRATION:-7d}
       CORS_ORIGIN: ${CORS_ORIGIN_PROD}
+    depends_on:
+      db-init-prod:
+        condition: service_completed_successfully
     networks:
       - hyrox-network
     profiles:
