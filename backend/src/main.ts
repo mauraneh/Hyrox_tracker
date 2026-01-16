@@ -5,53 +5,73 @@ import helmet from 'helmet';
 import { AppModule } from './app.module';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule, {
-    logger: ['error', 'warn', 'log', 'debug'],
-  });
+  try {
+    console.log('🚀 Starting NestJS application...');
+    console.log(`📦 NODE_ENV: ${process.env.NODE_ENV || 'development'}`);
+    console.log(`🔌 PORT: ${process.env.PORT || 3000}`);
+    console.log(`🌐 DATABASE_URL: ${process.env.DATABASE_URL ? 'Set' : 'Not set'}`);
 
-  // Security
-  app.use(helmet());
+    const app = await NestFactory.create(AppModule, {
+      logger: ['error', 'warn', 'log', 'debug'],
+    });
 
-  // CORS
-  app.enableCors({
-    origin: process.env.CORS_ORIGIN || 'http://localhost:4200',
-    credentials: true,
-  });
+    // Security
+    app.use(helmet());
 
-  // Global prefix
-  app.setGlobalPrefix('api');
+    // CORS - Support multiple origins
+    const corsOrigins = process.env.CORS_ORIGIN
+      ? process.env.CORS_ORIGIN.split(',').map((origin) => origin.trim())
+      : ['http://localhost:4200'];
 
-  // Validation
-  app.useGlobalPipes(
-    new ValidationPipe({
-      whitelist: true,
-      forbidNonWhitelisted: true,
-      transform: true,
-    }),
-  );
+    console.log(`🌍 CORS Origins: ${corsOrigins.join(', ')}`);
 
-  // Swagger documentation
-  const config = new DocumentBuilder()
-    .setTitle('Hyrox Tracker API')
-    .setDescription('API for tracking Hyrox performances and trainings')
-    .setVersion('1.0')
-    .addBearerAuth()
-    .addTag('auth', 'Authentication endpoints')
-    .addTag('users', 'User management')
-    .addTag('courses', 'Course management')
-    .addTag('trainings', 'Training management')
-    .addTag('stats', 'Statistics and analytics')
-    .addTag('health', 'Health checks')
-    .build();
+    app.enableCors({
+      origin: corsOrigins,
+      credentials: true,
+    });
 
-  const document = SwaggerModule.createDocument(app, config);
-  SwaggerModule.setup('api/docs', app, document);
+    // Global prefix
+    app.setGlobalPrefix('api');
 
-  const port = process.env.PORT || 3000;
-  await app.listen(port);
+    // Validation
+    app.useGlobalPipes(
+      new ValidationPipe({
+        whitelist: true,
+        forbidNonWhitelisted: true,
+        transform: true,
+      }),
+    );
 
-  console.log(`🚀 Application is running on: http://localhost:${port}`);
-  console.log(`📚 API Documentation: http://localhost:${port}/api/docs`);
+    // Swagger documentation
+    const config = new DocumentBuilder()
+      .setTitle('Hyrox Tracker API')
+      .setDescription('API for tracking Hyrox performances and trainings')
+      .setVersion('1.0')
+      .addBearerAuth()
+      .addTag('auth', 'Authentication endpoints')
+      .addTag('users', 'User management')
+      .addTag('courses', 'Course management')
+      .addTag('trainings', 'Training management')
+      .addTag('stats', 'Statistics and analytics')
+      .addTag('health', 'Health checks')
+      .build();
+
+    const document = SwaggerModule.createDocument(app, config);
+    SwaggerModule.setup('api/docs', app, document);
+
+    const port = process.env.PORT || 3000;
+    console.log(`🔌 Attempting to listen on port ${port}...`);
+    
+    await app.listen(port);
+
+    console.log(`✅ Application is running on: http://localhost:${port}`);
+    console.log(`📚 API Documentation: http://localhost:${port}/api/docs`);
+    console.log(`❤️  Health check: http://localhost:${port}/api/health/liveness`);
+  } catch (error) {
+    console.error('❌ Failed to start application:', error);
+    console.error('Error stack:', error instanceof Error ? error.stack : 'No stack trace');
+    process.exit(1);
+  }
 }
 
 bootstrap();

@@ -42,9 +42,12 @@ EXPOSE 3000
 CMD ["npm", "run", "start:dev"]
 
 # Stage 3: Production
-FROM node:20-alpine AS production
+FROM node:20-alpine3.18 AS production
 
 WORKDIR /app
+
+# Prisma a besoin d'OpenSSL 1.1 dans l'image de prod
+RUN apk add --no-cache openssl1.1-compat
 
 # Install only production dependencies
 COPY package*.json ./
