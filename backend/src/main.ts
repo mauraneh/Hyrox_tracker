@@ -4,14 +4,12 @@ import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import helmet from 'helmet';
 import { AppModule } from './app.module';
 
-async function bootstrap()
-{
-  try
-  {
+async function bootstrap() {
+  try {
     console.log('🚀 Starting NestJS application...');
     console.log(`📦 NODE_ENV: ${process.env.NODE_ENV || 'development'}`);
     console.log(`🔌 PORT: ${process.env.PORT || 3000}`);
-    console.log(`🌐 DATABASE_URL: ${process.env.DATABASE_URL ? 'Set' : 'Not set'}`);
+    console.log(`🌐 DATABASE_URL_PROD: ${process.env.DATABASE_URL_PROD ? 'Set' : 'Not set'}`);
 
     const app = await NestFactory.create(AppModule, {
       logger: ['error', 'warn', 'log', 'debug'],
