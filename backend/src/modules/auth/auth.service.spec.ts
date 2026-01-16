@@ -44,6 +44,7 @@ describe('AuthService', () => {
     jest.clearAllMocks();
   });
 
+  // ---------------- REGISTER ----------------
   describe('register', () => {
     it('should register a new user', async () => {
       const registerDto: RegisterDto = {
@@ -68,6 +69,7 @@ describe('AuthService', () => {
       expect(result.data.user.email).toBe(registerDto.email);
       expect(result.data.accessToken).toBe('jwt-token');
       expect(mockUsersService.create).toHaveBeenCalled();
+      expect(bcrypt.hash).toHaveBeenCalledWith(registerDto.password, 10);
     });
 
     it('should throw ConflictException if email already exists', async () => {
@@ -82,8 +84,31 @@ describe('AuthService', () => {
 
       await expect(service.register(registerDto)).rejects.toThrow(ConflictException);
     });
+
+    it('should throw error if email is invalid', async () => {
+      const registerDto: RegisterDto = {
+        email: 'not-an-email',
+        password: 'password123',
+        firstName: 'Test',
+        lastName: 'User',
+      };
+
+      await expect(service.register(registerDto)).rejects.toThrow();
+    });
+
+    it('should throw error if password is too short', async () => {
+      const registerDto: RegisterDto = {
+        email: 'test2@example.com',
+        password: '123',
+        firstName: 'Test',
+        lastName: 'User',
+      };
+
+      await expect(service.register(registerDto)).rejects.toThrow();
+    });
   });
 
+  // ---------------- LOGIN ----------------
   describe('login', () => {
     it('should login with valid credentials', async () => {
       const loginDto: LoginDto = {
@@ -108,6 +133,11 @@ describe('AuthService', () => {
       expect(result.success).toBe(true);
       expect(result.data.user.email).toBe(loginDto.email);
       expect(result.data.accessToken).toBe('jwt-token');
+
+      // ✅ matcher partiel pour éviter les erreurs si JWT a d'autres champs
+      expect(mockJwtService.sign).toHaveBeenCalledWith(
+        expect.objectContaining({ sub: mockUser.id }),
+      );
     });
 
     it('should throw UnauthorizedException if user not found', async () => {
@@ -137,6 +167,24 @@ describe('AuthService', () => {
       (bcrypt.compare as jest.Mock).mockResolvedValue(false);
 
       await expect(service.login(loginDto)).rejects.toThrow(UnauthorizedException);
+    });
+
+    it('should throw error if email is empty', async () => {
+      const loginDto: LoginDto = {
+        email: '',
+        password: 'password123',
+      };
+
+      await expect(service.login(loginDto)).rejects.toThrow();
+    });
+
+    it('should throw error if password is empty', async () => {
+      const loginDto: LoginDto = {
+        email: 'test@example.com',
+        password: '',
+      };
+
+      await expect(service.login(loginDto)).rejects.toThrow();
     });
   });
 });

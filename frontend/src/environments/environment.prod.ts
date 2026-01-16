@@ -1,4 +1,5 @@
 export const environment = {
   production: true,
-  apiUrl: "https://hyroxtracker.railway.app",
+  //Todo Ajouter bon env prod
+  apiUrl: "https://your-api-url.railway.app/api",
 };

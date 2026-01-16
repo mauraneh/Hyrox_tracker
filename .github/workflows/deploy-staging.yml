@@ -70,6 +70,5 @@ jobs:
 
       - name: Deploy (Railway / integration)
         run: |
-          echo "Staging deployment is handled by Railway's GitHub integration"
           echo "Images pushed to: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-backend:staging"
           echo "Images pushed to: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-frontend:staging"

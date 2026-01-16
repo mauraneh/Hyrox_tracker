@@ -3,6 +3,7 @@ import {
   NotFoundException,
   ForbiddenException,
   BadRequestException,
+  ConflictException,
 } from '@nestjs/common';
 import { PrismaService } from '@/prisma/prisma.service';
 import { CreateCourseDto } from './dto/create-course.dto';
@@ -19,6 +20,17 @@ export class CoursesService {
 
   async create(userId: string, createCourseDto: CreateCourseDto) {
     const { times, ...courseData } = createCourseDto;
+    const existing = await this.prisma.course.findMany({
+      where: {
+        name: courseData.name,
+        date: courseData.date,
+        userId,
+      },
+    });
+
+    if (existing.length > 0) {
+      throw new ConflictException('Course already exists for this user on this date');
+    }
 
     const course = await this.prisma.course.create({
       data: {
