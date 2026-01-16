@@ -95,7 +95,7 @@ describe('CoursesService', () => {
     it('should throw error if required fields are missing', async () => {
       // 🔹 Test validation DTO
       const userId = 'user-id';
-      const createCourseDto: any = {
+      const createCourseDto: Partial<CreateCourseDto> = {
         city: 'Paris',
       };
 
