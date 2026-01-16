@@ -12,21 +12,6 @@ jobs:
     name: Backend - Test & Build
     runs-on: ubuntu-latest
 
-    services:
-      postgres:
-        image: postgres:15-alpine
-        env:
-          POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: postgres
-          POSTGRES_DB: hyrox_db_test
-        options: >-
-          --health-cmd pg_isready
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-        ports:
-          - 5432:5432
-
     defaults:
       run:
         working-directory: ./backend
@@ -34,6 +19,34 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+
+      - name: Pull PostgreSQL image with retry
+        run: |
+          for i in 1 2 3 4 5; do
+            echo "Attempt $i to pull postgres:15-alpine"
+            docker pull postgres:15-alpine && break || sleep $((i * 10))
+          done
+
+      - name: Start PostgreSQL
+        run: |
+          docker run -d \
+            --name postgres \
+            -e POSTGRES_USER=postgres \
+            -e POSTGRES_PASSWORD=postgres \
+            -e POSTGRES_DB=hyrox_db_test \
+            -p 5432:5432 \
+            --health-cmd="pg_isready -U postgres" \
+            --health-interval=10s \
+            --health-timeout=5s \
+            --health-retries=5 \
+            postgres:15-alpine
+          
+          # Wait for PostgreSQL to be ready
+          timeout 60 bash -c 'until docker exec postgres pg_isready -U postgres; do sleep 2; done'
+
+      - name: Stop PostgreSQL
+        if: always()
+        run: docker stop postgres || true
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
