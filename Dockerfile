@@ -1,32 +1,38 @@
-# Dockerfile à la racine pour Railway
-# Utilise le backend comme contexte de build
+# Dockerfile à la racine (utilisé par Railway)
+# Le backend est utilisé comme contexte logique
 
+# =========================
+# Stage 1: Build
+# =========================
 FROM node:20-alpine3.18 AS builder
 WORKDIR /app
 
-## Necessaire pour le BCRYPT côté Backend
+# Dépendances natives (bcrypt / prisma)
 RUN apk add --no-cache python3 make g++ libc6-compat
 
-# Copier les fichiers du backend
+# Déps backend
 COPY backend/package*.json ./
 COPY backend/prisma ./prisma/
 
 RUN npm ci
 
+# Code backend
 COPY backend/ .
 
+# Prisma client + build Nest
 RUN npx prisma generate
 RUN npm run build
 
+# =========================
 # Stage 2: Production
+# =========================
 FROM node:20-alpine3.18 AS production
-
 WORKDIR /app
 
-# Prisma a besoin d'OpenSSL 1.1 dans l'image de prod
+# OpenSSL requis par Prisma
 RUN apk add --no-cache openssl1.1-compat
 
-# Install only production dependencies
+# Déps prod uniquement
 COPY backend/package*.json ./
 COPY backend/prisma ./prisma/
 
@@ -34,27 +40,17 @@ RUN npm ci --only=production && \
     npx prisma generate && \
     npm cache clean --force
 
-# Copy built application from builder stage
+# App buildée
 COPY --from=builder /app/dist ./dist
 
-# Copy startup script
-COPY backend/scripts/start.sh ./scripts/start.sh
-RUN chmod +x ./scripts/start.sh
-
-# Create non-root user
+# User non-root
 RUN addgroup -g 1001 -S nodejs && \
     adduser -S nestjs -u 1001
 
-# Change ownership of app directory
-RUN chown -R nestjs:nodejs /app
-
 USER nestjs
 
-# Expose port (Railway injecte le PORT dynamiquement)
+# Railway injecte PORT dynamiquement
 EXPOSE 3000
 
-# Note: Railway gère le healthcheck via railway.toml (healthcheckPath)
-# Pas besoin de HEALTHCHECK Docker ici
-
-# Start the application with migrations
-CMD ["./scripts/start.sh"]
+# Démarrage simple (comme en CI / staging)
+CMD ["node", "dist/main.js"]
