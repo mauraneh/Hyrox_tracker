@@ -38,4 +38,5 @@ export class AuthController {
   async getProfile(@CurrentUser() user: { userId: string }) {
     return this.authService.getProfile(user.userId);
   }
+  //Just comment for deploy
 }
