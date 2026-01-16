@@ -35,14 +35,25 @@ jobs:
             -e POSTGRES_PASSWORD=postgres \
             -e POSTGRES_DB=hyrox_db_test \
             -p 5432:5432 \
-            --health-cmd="pg_isready -U postgres" \
-            --health-interval=10s \
-            --health-timeout=5s \
-            --health-retries=5 \
             postgres:15-alpine
           
-          # Wait for PostgreSQL to be ready
-          timeout 60 bash -c 'until docker exec postgres pg_isready -U postgres; do sleep 2; done'
+          # Wait for PostgreSQL to be ready and accepting connections
+          echo "Waiting for PostgreSQL to be ready..."
+          for i in {1..30}; do
+            if docker exec postgres pg_isready -U postgres > /dev/null 2>&1; then
+              # Test actual connection
+              if docker exec postgres psql -U postgres -d hyrox_db_test -c "SELECT 1" > /dev/null 2>&1; then
+                echo "PostgreSQL is ready!"
+                break
+              fi
+            fi
+            if [ $i -eq 30 ]; then
+              echo "PostgreSQL failed to start after 60 seconds"
+              docker logs postgres
+              exit 1
+            fi
+            sleep 2
+          done
 
       - name: Stop PostgreSQL
         if: always()
