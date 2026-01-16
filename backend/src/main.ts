@@ -17,9 +17,11 @@ async function bootstrap() {
 
     app.use(helmet());
 
-    const corsOrigins = process.env.CORS_ORIGIN
-      ? process.env.CORS_ORIGIN.split(',').map((origin) => origin.trim())
-      : ['http://localhost:4200'];
+    const corsOrigins = [
+      'http://localhost:4200', // local dev
+      'https://frontend-410612815901.europe-west1.run.app', // prod front
+      'https://frontend-705088675351.europe-west1.run.app', // si staging
+    ];
 
     console.log(`🌍 CORS Origins: ${corsOrigins.join(', ')}`);
 
