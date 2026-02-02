@@ -6,7 +6,6 @@ import { AuthService } from '@core/auth/auth.service';
 import { environment } from '@environments/environment';
 import { forkJoin } from 'rxjs';
 import { StatsOverview, ProgressionData, StationStats, RoxzoneStats } from '@core/types/interfaces';
-import {  } from '@core/types/interfaces';
 
 @Component({
   selector: 'app-stats',
