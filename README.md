@@ -51,29 +51,17 @@ Tout est en **local** : l’API est sur `http://localhost:3000/api`. Démarrer l
 
 ## Mocks en secours (backup)
 
-En cas d’indisponibilité de l’API (maintenance, panne, travail offline), l’équipe peut s’appuyer sur des **mocks** alignés sur le contrat d’API (Swagger).
+En cas d’indisponibilité de l’API (maintenance, panne, travail offline), l’app peut utiliser des **mocks** (réponses JSON locales) alignées sur le contrat d’API (Swagger).
 
-### Stratégie recommandée
+### Mise en place (déjà en place)
 
-1. **Conserver une référence au contrat d’API**  
-   - Lien vers le dépôt backend ou copie du fichier Swagger/OpenAPI dans ce dépôt (ex. `docs/api-spec.yaml`).  
-   - Les mocks doivent respecter ce contrat pour éviter les mauvaises surprises au retour de l’API.
-
-2. **Emplacement des mocks**  
-   - Stocker les réponses JSON dans `src/assets/mocks/` (ex. `auth-login.json`, `stats-overview.json`, etc.).  
-   - Une structure par ressource (auth, stats, goals, courses, users) facilite la maintenance.
-
-3. **Activation des mocks**  
-   - Ajouter dans l’environnement un flag du type `useMocks: true` (par ex. dans `environment.ts` ou via `environment.development.ts`).  
-   - Dans les services qui appellent `HttpClient`, brancher soit :  
-     - un intercepteur HTTP qui, si `useMocks` est vrai, renvoie les JSON des mocks au lieu d’appeler l’API,  
-     - soit des services “mock” injectés à la place des vrais services quand `useMocks` est actif.  
-   - Les types TypeScript (`src/app/core/types/interfaces.ts`) restent la source de vérité ; les JSON de mocks doivent les respecter.
-
-4. **Aligner les mocks sur Swagger**  
-   - À chaque évolution de l’API (backend), mettre à jour le spec Swagger puis les JSON dans `src/assets/mocks/` pour garder le backup utilisable.
-
-Ainsi, en cas de crash ou indisponibilité de l’API, il suffit d’activer les mocks pour continuer à développer ou démontrer le frontend.
+- **Emplacement des mocks** : `public/mocks/` (auth, stats, goals, users, courses). Chaque fichier correspond à une réponse API (ex. `auth-login.json`, `stats-overview.json`).
+- **Activation** : dans `src/environments/environment.ts`, passer `useMocks` à `true` :
+  ```ts
+  useMocks: true,
+  ```
+- **Fonctionnement** : l’intercepteur `src/app/core/api/mock.interceptor.ts` s’exécute avant l’appel réseau ; si `useMocks` est vrai, il renvoie le JSON du fichier mock correspondant (méthode + chemin API). Les requêtes vers `mocks/` (chargement des JSON) ne sont pas interceptées.
+- **Contrat** : les types dans `src/app/core/types/interfaces.ts` et la doc Swagger du backend restent la référence ; adapter les JSON dans `public/mocks/` si l’API change.
 
 ## Docker (optionnel)
 
@@ -142,7 +130,7 @@ npm run lint
 
 - Le **backend** est dans un dépôt séparé ; ce repo ne contient que le frontend.  
 - **Tout est en local** : frontend (4200) et backend (3000) sur la même machine ; `apiUrl` pointe déjà vers `localhost`.  
-- Les mocks (voir section ci‑dessus) servent de backup si l’API est indisponible. La doc Swagger du backend est la référence pour le contrat d’API.
+- Les mocks (voir section ci‑dessus) servent de backup si l’API est indisponible : activer `useMocks: true` dans `environment.ts`. La doc Swagger du backend est la référence pour le contrat d’API ; les JSON sont dans `public/mocks/`.
 
 ## Licence
 
