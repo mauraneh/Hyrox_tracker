@@ -1,9 +1,30 @@
-import { ChangeDetectionStrategy, Component, inject, OnDestroy, OnInit, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, OnDestroy, OnInit, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { RouterLink } from '@angular/router';
 import { AuthService } from 'src/app/core/auth/auth.service';
 import { environment } from 'src/environments/environment';
 import { Course } from 'src/app/core/types/interfaces';
+
+type SortOrder = 'date-desc' | 'date-asc' | 'time-asc' | 'time-desc' | 'city-asc' | 'category-asc';
+
+function compareCourses(a: Course, b: Course, order: SortOrder): number {
+  switch (order) {
+    case 'date-desc':
+      return new Date(b.date).getTime() - new Date(a.date).getTime();
+    case 'date-asc':
+      return new Date(a.date).getTime() - new Date(b.date).getTime();
+    case 'time-asc':
+      return a.totalTime - b.totalTime;
+    case 'time-desc':
+      return b.totalTime - a.totalTime;
+    case 'city-asc':
+      return a.city.localeCompare(b.city, 'fr');
+    case 'category-asc':
+      return a.category.localeCompare(b.category, 'fr');
+    default:
+      return 0;
+  }
+}
 
 @Component({
   selector: 'app-courses-list',
@@ -23,6 +44,39 @@ export class CoursesListPage implements OnInit, OnDestroy {
   error = signal<string | null>(null);
   showUserMenu = signal(false);
   isExporting = signal(false);
+
+  filterCity = signal<string>('');
+  filterCategory = signal<string>('');
+
+  sortOrder = signal<SortOrder>('date-desc');
+
+  readonly sortOptions: { value: SortOrder; label: string }[] = [
+    { value: 'date-desc', label: 'Date (récent → ancien)' },
+    { value: 'date-asc', label: 'Date (ancien → récent)' },
+    { value: 'time-asc', label: 'Temps (croissant)' },
+    { value: 'time-desc', label: 'Temps (décroissant)' },
+    { value: 'city-asc', label: 'Ville (A-Z)' },
+    { value: 'category-asc', label: 'Catégorie (A-Z)' },
+  ];
+
+  uniqueCategories = computed(() => {
+    const courses = this.pastCourses();
+    return [...new Set(courses.map((course) => course.category))].sort();
+  });
+
+  filteredCourses = computed(() => {
+    const courses = this.pastCourses();
+    const city = this.filterCity().trim().toLowerCase();
+    const category = this.filterCategory().trim().toLowerCase();
+    const order = this.sortOrder();
+    let result = courses.filter((course) => {
+      if (city && !course.city.toLowerCase().includes(city)) return false;
+      if (category && !course.category.toLowerCase().includes(category)) return false;
+      return true;
+    });
+    result = [...result].sort((a, b) => compareCourses(a, b, order));
+    return result;
+  });
 
   ngOnInit(): void {
     this.loadCourses();
@@ -97,6 +151,12 @@ export class CoursesListPage implements OnInit, OnDestroy {
     });
   }
 
+  resetFilters(): void {
+    this.filterCity.set('');
+    this.filterCategory.set('');
+    this.sortOrder.set('date-desc');
+  }
+
   deleteCourse(course: Course): void {
     if (!confirm('Êtes-vous sûr de vouloir supprimer cette course ?')) return;
     this.#http.delete<{ success: boolean; message?: string }>(`${environment.apiUrl}/courses/${course.id}`).subscribe({
@@ -110,7 +170,7 @@ export class CoursesListPage implements OnInit, OnDestroy {
   }
 
   exportCsv(): void {
-    const courses = this.pastCourses();
+    const courses = this.filteredCourses();
     if (courses.length === 0) return;
 
     this.isExporting.set(true);

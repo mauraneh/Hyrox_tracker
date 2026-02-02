@@ -70,7 +70,7 @@
         <button
           type="button"
           (click)="exportCsv()"
-          [disabled]="pastCourses().length === 0 || isExporting()"
+          [disabled]="filteredCourses().length === 0 || isExporting()"
           class="btn-outline inline-flex items-center gap-2"
         >
           @if (isExporting()) {
@@ -112,8 +112,67 @@
         <a routerLink="/courses/new" class="btn-primary">Ajouter une course</a>
       </div>
     } @else {
+      <!-- Filtres et tri -->
+      <div class="card border-hyrox-gray-800 mb-6">
+        <div class="flex flex-wrap items-end gap-4">
+          <div class="flex flex-col gap-1">
+            <label for="sort-order" class="text-xs font-medium text-hyrox-gray-400">Tri</label>
+            <select
+              id="sort-order"
+              [value]="sortOrder()"
+              (change)="sortOrder.set($any($event.target).value)"
+              class="input min-w-[200px]"
+            >
+              @for (opt of sortOptions; track opt.value) {
+                <option [value]="opt.value">{{ opt.label }}</option>
+              }
+            </select>
+          </div>
+          <div class="flex flex-col gap-1">
+            <label for="filter-city" class="text-xs font-medium text-hyrox-gray-400">Ville</label>
+            <input
+              id="filter-city"
+              type="text"
+              [value]="filterCity()"
+              (input)="filterCity.set($any($event.target).value)"
+              placeholder="Toutes"
+              class="input min-w-[140px]"
+            />
+          </div>
+          <div class="flex flex-col gap-1">
+            <label for="filter-category" class="text-xs font-medium text-hyrox-gray-400">Catégorie</label>
+            <select
+              id="filter-category"
+              [value]="filterCategory()"
+              (change)="filterCategory.set($any($event.target).value)"
+              class="input min-w-[140px]"
+            >
+              <option value="">Toutes</option>
+              @for (cat of uniqueCategories(); track cat) {
+                <option [value]="cat">{{ cat }}</option>
+              }
+            </select>
+          </div>
+          <button type="button" (click)="resetFilters()" class="btn-outline shrink-0">
+            Réinitialiser les filtres
+          </button>
+        </div>
+        <p class="text-hyrox-gray-400 text-sm mt-3">
+          {{ filteredCourses().length }} course(s) affichée(s)
+          @if (filteredCourses().length !== pastCourses().length) {
+            sur {{ pastCourses().length }}
+          }
+        </p>
+      </div>
+
+      @if (filteredCourses().length === 0) {
+        <div class="card text-center py-12">
+          <p class="text-hyrox-gray-400 mb-6">Aucune course ne correspond aux filtres.</p>
+          <button type="button" (click)="resetFilters()" class="btn-outline">Réinitialiser les filtres</button>
+        </div>
+      } @else {
       <ul class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 list-none p-0 m-0">
-        @for (course of pastCourses(); track course.id) {
+        @for (course of filteredCourses(); track course.id) {
           <li>
             <div class="card border-hyrox-gray-800 hover:border-hyrox-yellow/30 transition-colors h-full flex flex-col">
               <div class="flex justify-between items-start gap-2">
@@ -155,6 +214,7 @@
           </li>
         }
       </ul>
+      }
     }
   </main>
 </div>
