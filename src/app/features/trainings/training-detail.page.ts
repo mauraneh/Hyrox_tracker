@@ -1,13 +1,13 @@
 import { CommonModule } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
 import { Component, inject, OnInit, signal } from '@angular/core';
-import { Router, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { AuthService } from 'src/app/core/auth/auth.service';
 import { Training } from 'src/app/core/types/interfaces';
 import { environment } from 'src/environments/environment';
 
 @Component({
-  selector: 'app-trainings-list',
+  selector: 'app-training-detail',
   standalone: true,
   imports: [CommonModule, RouterLink],
   template: `
@@ -75,12 +75,7 @@ import { environment } from 'src/environments/environment';
         </div>
       </nav>
 
-      <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div class="flex items-center justify-between gap-4 mb-8">
-          <h1 class="text-4xl font-black text-hyrox-yellow uppercase tracking-wide">Mes Entraînements</h1>
-          <a routerLink="/create-training" class="btn-primary">Ajouter un entraînement</a>
-        </div>
-
+      <main class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         @if (isLoading()) {
           <div class="card border-hyrox-yellow/20">
             <p class="text-hyrox-gray-400 text-center py-8">Chargement...</p>
@@ -88,105 +83,104 @@ import { environment } from 'src/environments/environment';
         } @else if (errorMessage()) {
           <div class="card border-red-500/30">
             <p class="text-red-400">{{ errorMessage() }}</p>
-            <button type="button" class="btn-secondary mt-4" (click)="loadTrainings()">Réessayer</button>
+            <a routerLink="/trainings" class="btn-outline mt-4 inline-block">Retour à la liste</a>
           </div>
-        } @else {
+        } @else if (training()) {
+          <div class="flex items-center justify-between gap-4 mb-8">
+            <a routerLink="/trainings" class="btn-outline">Retour</a>
+            <a [routerLink]="['/trainings', training()!.id, 'edit']" class="btn-primary">Modifier</a>
+          </div>
+
           <div class="card border-hyrox-yellow/20">
-            <div class="flex items-center justify-between mb-4">
-              <h2 class="text-xl font-black text-white uppercase tracking-wide">Liste des entraînements</h2>
-              <span class="text-xs font-semibold text-hyrox-gray-400 uppercase tracking-wide">{{ trainings().length }} entraînement(s)</span>
+            <div class="flex items-center justify-between mb-6">
+              <h1 class="text-2xl font-black text-hyrox-yellow uppercase tracking-wide">{{ training()!.type }}</h1>
+              @if (training()!.exerciseName) {
+                <span class="text-sm font-semibold text-white">{{ training()!.exerciseName }}</span>
+              }
             </div>
 
-            @if (trainings().length === 0) {
-              <div class="rounded-xl bg-hyrox-gray-800/50 border border-hyrox-gray-800 p-8 text-center">
-                <p class="text-hyrox-gray-400 mb-4">Aucun entraînement pour le moment.</p>
-                <a routerLink="/create-training" class="btn-primary">Créer mon premier entraînement</a>
+            <dl class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <dt class="text-xs font-semibold text-hyrox-gray-400 uppercase tracking-wide mb-1">Date</dt>
+                <dd class="text-white font-medium">{{ formatDate(training()!.date) }}</dd>
               </div>
-            } @else {
-              <ul class="space-y-3">
-                @for (t of trainings(); track t.id) {
-                  <li class="rounded-xl border border-hyrox-gray-800 bg-hyrox-gray-800/50 p-4 hover:border-hyrox-yellow/30 transition-colors relative group">
-                    <button
-                      type="button"
-                      (click)="requestConfirmDelete($event, t.id)"
-                      [disabled]="deletingId() === t.id"
-                      class="absolute top-3 right-3 p-2 rounded-lg text-red-500 hover:bg-red-500/20 hover:text-red-400 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                      title="Supprimer"
-                    >
-                      <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                      </svg>
-                    </button>
-                    <a [routerLink]="['/trainings', t.id]" class="block pr-10 cursor-pointer">
-                      <div class="min-w-0 flex-1">
-                        <div class="flex flex-wrap items-center gap-2 mb-1">
-                          <span class="text-sm font-bold text-hyrox-yellow uppercase tracking-wide">{{ t.type }}</span>
-                          @if (t.exerciseName) {
-                            <span class="text-sm text-white">· {{ t.exerciseName }}</span>
-                          }
-                        </div>
-                        <p class="text-xs text-hyrox-gray-400 uppercase tracking-wide">
-                          {{ formatDate(t.date) }}
-                          @if (t.durationSeconds != null && t.durationSeconds > 0) {
-                            <span class="ml-2">· {{ formatDuration(t.durationSeconds) }}</span>
-                          }
-                          @if (t.distanceMeters != null && t.distanceMeters > 0) {
-                            <span class="ml-2">· {{ formatDistance(t.distanceMeters) }}</span>
-                          }
-                          @if (t.rounds != null && t.rounds > 0) {
-                            <span class="ml-2">· {{ t.rounds }} rounds</span>
-                          }
-                          @if (t.weightKg != null && t.weightKg > 0) {
-                            <span class="ml-2">· {{ t.weightKg }} kg</span>
-                          }
-                        </p>
-                        @if (t.comment) {
-                          <p class="text-sm text-hyrox-gray-400 mt-2 line-clamp-2">{{ t.comment }}</p>
-                        }
-                      </div>
-                    </a>
-                  </li>
-                }
-              </ul>
+              @if (training()!.format) {
+                <div>
+                  <dt class="text-xs font-semibold text-hyrox-gray-400 uppercase tracking-wide mb-1">Format</dt>
+                  <dd class="text-white font-medium">{{ training()!.format }}</dd>
+                </div>
+              }
+              @if ((training()?.rounds ?? 0) > 0) {
+                <div>
+                  <dt class="text-xs font-semibold text-hyrox-gray-400 uppercase tracking-wide mb-1">Rounds</dt>
+                  <dd class="text-white font-medium">{{ training()!.rounds }}</dd>
+                </div>
+              }
+              @if ((training()?.sets ?? 0) > 0) {
+                <div>
+                  <dt class="text-xs font-semibold text-hyrox-gray-400 uppercase tracking-wide mb-1">Sets</dt>
+                  <dd class="text-white font-medium">{{ training()!.sets }}</dd>
+                </div>
+              }
+              @if ((training()?.reps ?? 0) > 0) {
+                <div>
+                  <dt class="text-xs font-semibold text-hyrox-gray-400 uppercase tracking-wide mb-1">Reps</dt>
+                  <dd class="text-white font-medium">{{ training()!.reps }}</dd>
+                </div>
+              }
+              @if ((training()?.durationSeconds ?? 0) > 0) {
+                <div>
+                  <dt class="text-xs font-semibold text-hyrox-gray-400 uppercase tracking-wide mb-1">Durée</dt>
+                  <dd class="text-white font-medium">{{ formatDuration(training()!.durationSeconds!) }}</dd>
+                </div>
+              }
+              @if ((training()?.distanceMeters ?? 0) > 0) {
+                <div>
+                  <dt class="text-xs font-semibold text-hyrox-gray-400 uppercase tracking-wide mb-1">Distance</dt>
+                  <dd class="text-white font-medium">{{ formatDistance(training()!.distanceMeters!) }}</dd>
+                </div>
+              }
+              @if ((training()?.restSeconds ?? 0) > 0) {
+                <div>
+                  <dt class="text-xs font-semibold text-hyrox-gray-400 uppercase tracking-wide mb-1">Repos</dt>
+                  <dd class="text-white font-medium">{{ training()!.restSeconds }} sec</dd>
+                </div>
+              }
+              @if ((training()?.weightKg ?? 0) > 0) {
+                <div>
+                  <dt class="text-xs font-semibold text-hyrox-gray-400 uppercase tracking-wide mb-1">Charge</dt>
+                  <dd class="text-white font-medium">{{ training()!.weightKg }} kg</dd>
+                </div>
+              }
+            </dl>
+
+            @if (training()!.comment) {
+              <div class="mt-6 pt-6 border-t border-hyrox-gray-800">
+                <dt class="text-xs font-semibold text-hyrox-gray-400 uppercase tracking-wide mb-2">Commentaire</dt>
+                <dd class="text-hyrox-gray-300 whitespace-pre-wrap">{{ training()!.comment }}</dd>
+              </div>
             }
           </div>
         }
       </main>
-
-      @if (confirmDeleteId()) {
-        <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70" role="dialog" aria-modal="true" aria-labelledby="confirm-delete-title">
-          <div class="rounded-xl border border-hyrox-gray-800 bg-hyrox-gray-900 p-6 shadow-xl border-hyrox-yellow/30 max-w-sm w-full">
-            <h2 id="confirm-delete-title" class="text-lg font-bold text-white mb-3">Supprimer l'entraînement</h2>
-            <p class="text-hyrox-gray-300 mb-6">Voulez-vous vraiment supprimer cet entraînement ?</p>
-            <div class="flex gap-3 justify-end">
-              <button type="button" class="btn-secondary" (click)="cancelDelete()">Non</button>
-              <button type="button" class="btn-primary bg-red-600 hover:bg-red-500 text-white" (click)="confirmDelete()" [disabled]="deletingId() !== null">
-                {{ deletingId() ? 'Suppression...' : 'Oui' }}
-              </button>
-            </div>
-          </div>
-        </div>
-      }
     </div>
   `,
 })
-export class TrainingsListPage implements OnInit {
+export class TrainingDetailPage implements OnInit {
   #authService = inject(AuthService);
   #http = inject(HttpClient);
+  #route = inject(ActivatedRoute);
+  #router = inject(Router);
 
   currentUser = this.#authService.currentUser;
   showUserMenu = signal(false);
-  trainings = signal<Training[]>([]);
+  training = signal<Training | null>(null);
   isLoading = signal(true);
   errorMessage = signal<string | null>(null);
-  deletingId = signal<string | null>(null);
-  confirmDeleteId = signal<string | null>(null);
 
-  #router = inject(Router);
   private readonly apiUrl = `${environment.apiUrl}/trainings`;
 
   ngOnInit(): void {
-    this.loadTrainings();
     document.addEventListener('click', (event) => {
       if (this.showUserMenu()) {
         const target = event.target as HTMLElement;
@@ -195,73 +189,39 @@ export class TrainingsListPage implements OnInit {
         }
       }
     });
+
+    const id = this.#route.snapshot.paramMap.get('id');
+    if (id) {
+      this.loadTraining(id);
+    } else {
+      this.errorMessage.set('Entraînement introuvable.');
+      this.isLoading.set(false);
+    }
   }
 
-  loadTrainings(): void {
-    this.isLoading.set(true);
-    this.errorMessage.set(null);
-
+  loadTraining(id: string): void {
     const token = this.#authService.getToken();
     if (!token) {
-      this.isLoading.set(false);
       this.errorMessage.set('Vous devez être connecté.');
+      this.isLoading.set(false);
       return;
     }
 
     this.#http
-      .get<{ success: boolean; data: Training[] }>(this.apiUrl, {
+      .get<{ success: boolean; data: Training }>(`${this.apiUrl}/${id}`, {
         headers: { Authorization: `Bearer ${token}` },
       })
       .subscribe({
         next: (response) => {
-          const list = Array.isArray(response.data) ? response.data : [];
-          this.trainings.set(list);
+          this.training.set(response.data ?? null);
           this.isLoading.set(false);
+          if (!response.data) {
+            this.errorMessage.set('Entraînement introuvable.');
+          }
         },
         error: (err) => {
-          this.errorMessage.set(err?.error?.message ?? 'Impossible de charger les entraînements.');
+          this.errorMessage.set(err?.error?.message ?? 'Impossible de charger l\'entraînement.');
           this.isLoading.set(false);
-        },
-      });
-  }
-
-  requestConfirmDelete(event: Event, id: string): void {
-    event.preventDefault();
-    event.stopPropagation();
-    this.confirmDeleteId.set(id);
-  }
-
-  cancelDelete(): void {
-    this.confirmDeleteId.set(null);
-  }
-
-  confirmDelete(): void {
-    const id = this.confirmDeleteId();
-    if (!id) return;
-
-    this.deletingId.set(id);
-
-    const token = this.#authService.getToken();
-    if (!token) {
-      this.deletingId.set(null);
-      this.confirmDeleteId.set(null);
-      return;
-    }
-
-    this.#http
-      .delete(`${this.apiUrl}/${id}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      .subscribe({
-        next: () => {
-          this.trainings.update((list) => list.filter((t) => t.id !== id));
-          this.deletingId.set(null);
-          this.confirmDeleteId.set(null);
-        },
-        error: () => {
-          this.errorMessage.set('Impossible de supprimer l\'entraînement.');
-          this.deletingId.set(null);
-          this.confirmDeleteId.set(null);
         },
       });
   }
@@ -282,7 +242,7 @@ export class TrainingsListPage implements OnInit {
   formatDate(date: string): string {
     return new Date(date).toLocaleDateString('fr-FR', {
       day: 'numeric',
-      month: 'short',
+      month: 'long',
       year: 'numeric',
       hour: '2-digit',
       minute: '2-digit',
