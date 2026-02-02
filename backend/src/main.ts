@@ -19,7 +19,7 @@ async function bootstrap() {
 
     const corsOrigins = process.env.CORS_ORIGIN
       ? process.env.CORS_ORIGIN.split(',').map((origin) => origin.trim())
-      : ['http://localhost:4200'];
+      : ['http://localhost:4200', 'http://127.0.0.1:4200'];
 
     console.log(`🌍 CORS Origins: ${corsOrigins.join(', ')}`);
 

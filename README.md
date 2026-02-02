@@ -12,20 +12,42 @@ Application de suivi des performances Hyrox avec Angular et NestJS (développeme
 
 ### Développement local
 
-1. Lancer tous les services :
+1. Installer les dépendances du backend (nécessaire pour que le conteneur trouve `bcryptjs` et les autres modules) :
+
+```bash
+cd backend && npm install && cd ..
+```
+
+2. Lancer tous les services :
 
 ```bash
 docker-compose up -d
 ```
 
-2. Les migrations et le seed sont exécutés automatiquement au démarrage via le service `db-init`.
+3. Les migrations et le seed sont exécutés automatiquement au démarrage via le service `db-init`.
 
-3. Accéder à l'application :
+4. Accéder à l'application :
 
 - **Frontend** : http://localhost:4200
 - **Backend API** : http://localhost:3000
 - **API Documentation (Swagger)** : http://localhost:3000/api/docs
 - **Health check** : http://localhost:3000/api/health/liveness
+
+**En cas d’erreur `ERR_CONNECTION_RESET` ou `Failed to load resource`** : le backend n’est probablement pas démarré ou redémarre en boucle. Vérifier que tous les services tournent :
+
+```bash
+docker-compose ps
+docker-compose logs backend
+```
+
+Si `db-init` a échoué, le backend ne démarre pas. Relancer après correction :
+
+```bash
+docker-compose down
+docker-compose up -d
+```
+
+Tester l’API : http://localhost:3000/api/health/liveness (doit répondre `{"status":"ok",...}`).
 
 #### Commandes utiles
 

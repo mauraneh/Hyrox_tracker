@@ -38,9 +38,6 @@ services:
         condition: service_healthy
     networks:
       - hyrox-network
-    volumes:
-      - ./backend:/app
-      - backend_node_modules:/app/node_modules
     command: >
       sh -c "
         npm run prisma:generate &&
@@ -63,7 +60,7 @@ services:
       DATABASE_URL: postgresql://postgres:postgres@postgres:5432/hyrox_db
       JWT_SECRET: dev-secret-key
       JWT_EXPIRATION: 7d
-      CORS_ORIGIN: http://localhost:4200
+      CORS_ORIGIN: http://localhost:4200,http://127.0.0.1:4200
     depends_on:
       postgres:
         condition: service_healthy
@@ -73,7 +70,6 @@ services:
       - hyrox-network
     volumes:
       - ./backend:/app
-      - backend_node_modules:/app/node_modules
     command: npm run start:dev
 
   frontend:
@@ -98,8 +94,6 @@ services:
 
 volumes:
   postgres_data:
-    driver: local
-  backend_node_modules:
     driver: local
 
 networks:
