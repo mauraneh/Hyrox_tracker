@@ -18,7 +18,6 @@ export class CoursesListPage implements OnInit, OnDestroy {
   #http = inject(HttpClient);
 
   currentUser = this.#authService.currentUser;
-  courses = signal<Course[]>([]);
   pastCourses = signal<Course[]>([]);
   isLoading = signal(true);
   error = signal<string | null>(null);
@@ -49,7 +48,6 @@ export class CoursesListPage implements OnInit, OnDestroy {
     this.#http.get<{ success: boolean; data: Course[] }>(`${environment.apiUrl}/courses`).subscribe({
       next: (response) => {
         const all = response.data ?? [];
-        this.courses.set(all);
         this.pastCourses.set(this.filterPastCourses(all));
         this.isLoading.set(false);
       },
@@ -96,6 +94,18 @@ export class CoursesListPage implements OnInit, OnDestroy {
       day: 'numeric',
       month: 'long',
       year: 'numeric',
+    });
+  }
+
+  deleteCourse(course: Course): void {
+    if (!confirm('Êtes-vous sûr de vouloir supprimer cette course ?')) return;
+    this.#http.delete<{ success: boolean; message?: string }>(`${environment.apiUrl}/courses/${course.id}`).subscribe({
+      next: () => {
+        this.pastCourses.update((list) => list.filter((c) => c.id !== course.id));
+      },
+      error: (err) => {
+        this.error.set(err.error?.message ?? 'Erreur lors de la suppression');
+      },
     });
   }
 
