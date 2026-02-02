@@ -11,6 +11,7 @@ import { RouterLink } from '@angular/router';
         <h1 class="text-4xl font-black text-hyrox-yellow uppercase tracking-wide mb-6">Mes Entraînements</h1>
         <div class="card">
           <p class="text-hyrox-gray-400">Page entraînements en construction...</p>
+          <a routerLink="/create-training" class="btn-primary mt-4">Créer un entraînement</a>
           <a routerLink="/dashboard" class="btn-primary mt-4">Retour au dashboard</a>
         </div>
       </div>
@@ -18,5 +19,3 @@ import { RouterLink } from '@angular/router';
   `,
 })
 export class TrainingsListPage {}
-
-

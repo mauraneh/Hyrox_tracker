@@ -28,6 +28,12 @@ export const routes: Routes = [
     loadChildren: () => import('./features/trainings/trainings.routes').then((m) => m.routes),
   },
   {
+    path: 'create-training',
+    canActivate: [authGuard],
+    loadComponent: () =>
+      import('./features/trainings/create-training.page').then((m) => m.CreateTrainingPage),
+  },
+  {
     path: 'stats',
     canActivate: [authGuard],
     loadComponent: () => import('./features/stats/stats.page').then((m) => m.StatsPage),
@@ -49,5 +55,3 @@ export const routes: Routes = [
     redirectTo: '/dashboard',
   },
 ];
-
-
