@@ -16,3 +16,10 @@ export enum TrainingFormat
   emom = 'emom',
   intervals = 'intervals',
 }
+
+export enum TrainingDifficulty
+{
+  NOVICE = 'novice',
+  INTERMEDIATE = 'intermediate',
+  EXPERT = 'expert',
+}

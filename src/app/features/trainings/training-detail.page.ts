@@ -75,30 +75,57 @@ import { environment } from 'src/environments/environment';
         </div>
       </nav>
 
-      <main class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <main class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <a routerLink="/trainings" class="inline-flex items-center gap-2 text-hyrox-yellow hover:text-white font-semibold mb-8 transition-colors">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+          </svg>
+          Retour aux entraînements
+        </a>
+
         @if (isLoading()) {
-          <div class="card border-hyrox-yellow/20">
-            <p class="text-hyrox-gray-400 text-center py-8">Chargement...</p>
+          <div class="text-center py-12">
+            <p class="text-hyrox-gray-400">Chargement de l'entraînement...</p>
           </div>
         } @else if (errorMessage()) {
-          <div class="card border-red-500/30">
+          <div class="card border-red-900/30">
             <p class="text-red-400">{{ errorMessage() }}</p>
-            <a routerLink="/trainings" class="btn-outline mt-4 inline-block">Retour à la liste</a>
+            <a routerLink="/trainings" class="btn-outline mt-4 inline-block">Retour aux entraînements</a>
           </div>
         } @else if (training()) {
-          <div class="flex items-center justify-between gap-4 mb-8">
-            <a routerLink="/trainings" class="btn-outline">Retour</a>
-            <a [routerLink]="['/trainings', training()!.id, 'edit']" class="btn-primary">Modifier</a>
+          <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
+            <h1 class="text-4xl font-black text-hyrox-yellow uppercase tracking-wide">{{ training()!.type }}</h1>
+            <div class="flex items-center gap-3">
+              <a [routerLink]="['/trainings', training()!.id, 'edit']" class="btn-outline inline-flex items-center gap-2">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                </svg>
+                Modifier
+              </a>
+              <button
+                type="button"
+                (click)="requestConfirmDelete()"
+                [disabled]="isDeleting()"
+                class="btn inline-flex items-center gap-2 bg-red-600 text-white border-2 border-red-500 hover:bg-red-500 hover:border-red-400"
+              >
+                @if (isDeleting()) {
+                  <span>Suppression...</span>
+                } @else {
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                  </svg>
+                  Supprimer
+                }
+              </button>
+            </div>
           </div>
 
-          <div class="card border-hyrox-yellow/20">
-            <div class="flex items-center justify-between mb-6">
-              <h1 class="text-2xl font-black text-hyrox-yellow uppercase tracking-wide">{{ training()!.type }}</h1>
-              @if (training()!.exerciseName) {
-                <span class="text-sm font-semibold text-white">{{ training()!.exerciseName }}</span>
-              }
-            </div>
+          @if (training()!.exerciseName) {
+            <p class="text-hyrox-gray-400 text-lg mb-6">{{ training()!.exerciseName }}</p>
+          }
 
+          <div class="card mb-6">
+            <h2 class="text-xl font-bold text-white mb-4">Informations</h2>
             <dl class="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <dt class="text-xs font-semibold text-hyrox-gray-400 uppercase tracking-wide mb-1">Date</dt>
@@ -163,6 +190,21 @@ import { environment } from 'src/environments/environment';
           </div>
         }
       </main>
+
+      @if (showConfirmDelete()) {
+        <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70" role="dialog" aria-modal="true" aria-labelledby="confirm-delete-detail-title">
+          <div class="rounded-xl border border-hyrox-gray-800 bg-hyrox-gray-900 p-6 shadow-xl border-hyrox-yellow/30 max-w-sm w-full">
+            <h2 id="confirm-delete-detail-title" class="text-lg font-bold text-white mb-3">Supprimer l'entraînement</h2>
+            <p class="text-hyrox-gray-300 mb-6">Voulez-vous vraiment supprimer cet entraînement ?</p>
+            <div class="flex gap-3 justify-end">
+              <button type="button" class="btn-secondary" (click)="cancelDelete()">Non</button>
+              <button type="button" class="btn-primary bg-red-600 hover:bg-red-500 text-white" (click)="confirmDelete()" [disabled]="isDeleting()">
+                {{ isDeleting() ? 'Suppression...' : 'Oui' }}
+              </button>
+            </div>
+          </div>
+        </div>
+      }
     </div>
   `,
 })
@@ -174,9 +216,11 @@ export class TrainingDetailPage implements OnInit {
 
   currentUser = this.#authService.currentUser;
   showUserMenu = signal(false);
+  showConfirmDelete = signal(false);
   training = signal<Training | null>(null);
   isLoading = signal(true);
   errorMessage = signal<string | null>(null);
+  isDeleting = signal(false);
 
   private readonly apiUrl = `${environment.apiUrl}/trainings`;
 
@@ -263,5 +307,37 @@ export class TrainingDetailPage implements OnInit {
       return `${(meters / 1000).toFixed(1)} km`;
     }
     return `${meters} m`;
+  }
+
+  requestConfirmDelete(): void {
+    this.showConfirmDelete.set(true);
+  }
+
+  cancelDelete(): void {
+    this.showConfirmDelete.set(false);
+  }
+
+  confirmDelete(): void {
+    const t = this.training();
+    if (!t?.id) return;
+
+    const token = this.#authService.getToken();
+    if (!token) return;
+
+    this.isDeleting.set(true);
+    this.#http
+      .delete(`${this.apiUrl}/${t.id}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      .subscribe({
+        next: () => {
+          this.#router.navigate(['/trainings']);
+        },
+        error: (err) => {
+          this.errorMessage.set(err?.error?.message ?? 'Impossible de supprimer l\'entraînement.');
+          this.isDeleting.set(false);
+          this.showConfirmDelete.set(false);
+        },
+      });
   }
 }

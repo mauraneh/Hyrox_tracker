@@ -76,80 +76,86 @@ import { environment } from 'src/environments/environment';
       </nav>
 
       <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div class="flex items-center justify-between gap-4 mb-8">
-          <h1 class="text-4xl font-black text-hyrox-yellow uppercase tracking-wide">Mes Entraînements</h1>
-          <a routerLink="/create-training" class="btn-primary">Ajouter un entraînement</a>
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
+          <h1 class="text-4xl font-black text-hyrox-yellow uppercase tracking-wide">Mes entraînements</h1>
+          <div class="flex flex-wrap items-center gap-3">
+            <a routerLink="/create-training" class="btn-primary inline-flex items-center gap-2">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+              </svg>
+              Ajouter un entraînement
+            </a>
+          </div>
         </div>
 
         @if (isLoading()) {
-          <div class="card border-hyrox-yellow/20">
-            <p class="text-hyrox-gray-400 text-center py-8">Chargement...</p>
+          <div class="text-center py-12">
+            <p class="text-hyrox-gray-400">Chargement des entraînements...</p>
           </div>
         } @else if (errorMessage()) {
-          <div class="card border-red-500/30">
+          <div class="card border-red-900/30">
             <p class="text-red-400">{{ errorMessage() }}</p>
-            <button type="button" class="btn-secondary mt-4" (click)="loadTrainings()">Réessayer</button>
+            <button type="button" (click)="loadTrainings()" class="btn-outline mt-4">Réessayer</button>
+          </div>
+        } @else if (trainings().length === 0) {
+          <div class="card text-center py-12">
+            <p class="text-hyrox-gray-400 mb-6">Aucun entraînement enregistré.</p>
+            <a routerLink="/create-training" class="btn-primary">Ajouter un entraînement</a>
           </div>
         } @else {
-          <div class="card border-hyrox-yellow/20">
-            <div class="flex items-center justify-between mb-4">
-              <h2 class="text-xl font-black text-white uppercase tracking-wide">Liste des entraînements</h2>
-              <span class="text-xs font-semibold text-hyrox-gray-400 uppercase tracking-wide">{{ trainings().length }} entraînement(s)</span>
-            </div>
-
-            @if (trainings().length === 0) {
-              <div class="rounded-xl bg-hyrox-gray-800/50 border border-hyrox-gray-800 p-8 text-center">
-                <p class="text-hyrox-gray-400 mb-4">Aucun entraînement pour le moment.</p>
-                <a routerLink="/create-training" class="btn-primary">Créer mon premier entraînement</a>
-              </div>
-            } @else {
-              <ul class="space-y-3">
-                @for (t of trainings(); track t.id) {
-                  <li class="rounded-xl border border-hyrox-gray-800 bg-hyrox-gray-800/50 p-4 hover:border-hyrox-yellow/30 transition-colors relative group">
-                    <button
-                      type="button"
-                      (click)="requestConfirmDelete($event, t.id)"
-                      [disabled]="deletingId() === t.id"
-                      class="absolute top-3 right-3 p-2 rounded-lg text-red-500 hover:bg-red-500/20 hover:text-red-400 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                      title="Supprimer"
-                    >
-                      <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                      </svg>
-                    </button>
-                    <a [routerLink]="['/trainings', t.id]" class="block pr-10 cursor-pointer">
-                      <div class="min-w-0 flex-1">
-                        <div class="flex flex-wrap items-center gap-2 mb-1">
-                          <span class="text-sm font-bold text-hyrox-yellow uppercase tracking-wide">{{ t.type }}</span>
-                          @if (t.exerciseName) {
-                            <span class="text-sm text-white">· {{ t.exerciseName }}</span>
-                          }
-                        </div>
-                        <p class="text-xs text-hyrox-gray-400 uppercase tracking-wide">
-                          {{ formatDate(t.date) }}
-                          @if (t.durationSeconds != null && t.durationSeconds > 0) {
-                            <span class="ml-2">· {{ formatDuration(t.durationSeconds) }}</span>
-                          }
-                          @if (t.distanceMeters != null && t.distanceMeters > 0) {
-                            <span class="ml-2">· {{ formatDistance(t.distanceMeters) }}</span>
-                          }
-                          @if (t.rounds != null && t.rounds > 0) {
-                            <span class="ml-2">· {{ t.rounds }} rounds</span>
-                          }
-                          @if (t.weightKg != null && t.weightKg > 0) {
-                            <span class="ml-2">· {{ t.weightKg }} kg</span>
-                          }
-                        </p>
-                        @if (t.comment) {
-                          <p class="text-sm text-hyrox-gray-400 mt-2 line-clamp-2">{{ t.comment }}</p>
+          <ul class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 list-none p-0 m-0">
+            @for (t of trainings(); track t.id) {
+              <li>
+                <div class="card border-hyrox-gray-800 hover:border-hyrox-yellow/30 transition-colors h-full flex flex-col">
+                  <div class="flex justify-between items-start gap-2">
+                    <a [routerLink]="['/trainings', t.id]" class="flex flex-col flex-1 min-w-0">
+                      <h2 class="text-xl font-bold text-white mb-2">{{ t.type }}</h2>
+                      @if (t.exerciseName) {
+                        <p class="text-hyrox-gray-400 text-sm mb-1">{{ t.exerciseName }}</p>
+                      }
+                      <p class="text-hyrox-yellow font-semibold text-sm mb-3">{{ formatDate(t.date) }}</p>
+                      <div class="flex flex-wrap gap-2 mt-auto">
+                        @if (t.durationSeconds != null && t.durationSeconds > 0) {
+                          <span class="inline-block px-2 py-1 rounded bg-hyrox-gray-800 text-hyrox-gray-300 text-xs font-medium">{{ formatDuration(t.durationSeconds) }}</span>
+                        }
+                        @if (t.distanceMeters != null && t.distanceMeters > 0) {
+                          <span class="inline-block px-2 py-1 rounded bg-hyrox-yellow/20 text-hyrox-yellow text-xs font-semibold">{{ formatDistance(t.distanceMeters) }}</span>
+                        }
+                        @if (t.rounds != null && t.rounds > 0) {
+                          <span class="inline-block px-2 py-1 rounded bg-hyrox-gray-800 text-hyrox-gray-300 text-xs font-medium">{{ t.rounds }} rounds</span>
                         }
                       </div>
                     </a>
-                  </li>
-                }
-              </ul>
+                    <div class="flex gap-1 flex-shrink-0">
+                      <a
+                        [routerLink]="['/trainings', t.id, 'edit']"
+                        (click)="$event.stopPropagation()"
+                        class="p-2 rounded-lg text-hyrox-gray-400 hover:text-hyrox-yellow hover:bg-hyrox-gray-800 transition-colors"
+                        title="Modifier"
+                        aria-label="Modifier l'entraînement"
+                      >
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                        </svg>
+                      </a>
+                      <button
+                        type="button"
+                        (click)="requestConfirmDelete($event, t.id)"
+                        [disabled]="deletingId() === t.id"
+                        class="p-2 rounded-lg text-hyrox-gray-400 hover:text-red-400 hover:bg-hyrox-gray-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                        title="Supprimer"
+                        aria-label="Supprimer l'entraînement"
+                      >
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                        </svg>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </li>
             }
-          </div>
+          </ul>
         }
       </main>
 

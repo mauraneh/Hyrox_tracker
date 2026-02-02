@@ -3,7 +3,7 @@ import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
-import { TrainingFormat, TrainingType } from '@core/types/enums';
+import { TrainingDifficulty, TrainingFormat, TrainingType } from '@core/types/enums';
 import { AuthService } from '@core/auth/auth.service';
 import { environment } from 'src/environments/environment';
 
@@ -124,6 +124,50 @@ export type CreateTrainingPayload = {
               </div>
             </div>
 
+            @if (form.get('type')?.value) {
+              <div class="rounded-xl border border-hyrox-gray-800 bg-hyrox-gray-800/50 p-4">
+                <p class="text-xs font-semibold text-hyrox-gray-400 uppercase tracking-wide mb-3">Présets par niveau</p>
+                <div class="flex flex-wrap gap-3">
+                  <button
+                    type="button"
+                    (click)="loadPreset(TrainingDifficulty.NOVICE)"
+                    [disabled]="isLoadingPreset()"
+                    class="btn-outline inline-flex items-center gap-2"
+                  >
+                    @if (isLoadingPreset() && selectedPresetDifficulty() === TrainingDifficulty.NOVICE) {
+                      <span>Chargement...</span>
+                    } @else {
+                      <span>Novice</span>
+                    }
+                  </button>
+                  <button
+                    type="button"
+                    (click)="loadPreset(TrainingDifficulty.INTERMEDIATE)"
+                    [disabled]="isLoadingPreset()"
+                    class="btn-outline inline-flex items-center gap-2"
+                  >
+                    @if (isLoadingPreset() && selectedPresetDifficulty() === TrainingDifficulty.INTERMEDIATE) {
+                      <span>Chargement...</span>
+                    } @else {
+                      <span>Intermédiaire</span>
+                    }
+                  </button>
+                  <button
+                    type="button"
+                    (click)="loadPreset(TrainingDifficulty.EXPERT)"
+                    [disabled]="isLoadingPreset()"
+                    class="btn-outline inline-flex items-center gap-2"
+                  >
+                    @if (isLoadingPreset() && selectedPresetDifficulty() === TrainingDifficulty.EXPERT) {
+                      <span>Chargement...</span>
+                    } @else {
+                      <span>Expert</span>
+                    }
+                  </button>
+                </div>
+              </div>
+            }
+
             <div>
               <label class="label text-xs font-semibold text-hyrox-gray-400 uppercase tracking-wide" for="exerciseName">Nom de l'exercice</label>
               <input id="exerciseName" class="input" type="text" formControlName="exerciseName" placeholder="ex: Back Squat / 5km easy" />
@@ -226,12 +270,16 @@ export class CreateTrainingPage implements OnInit {
   #router = inject(Router);
 
   private readonly apiUrl = `${environment.apiUrl}/trainings`;
+  private readonly presetsUrl = `${environment.apiUrl}/training-presets`;
 
   protected readonly trainingFormats = computed(() => Object.values(TrainingFormat));
   protected readonly trainingTypes = computed(() => Object.values(TrainingType));
+  protected readonly TrainingDifficulty = TrainingDifficulty;
 
   currentUser = this.#authService.currentUser;
   showUserMenu = signal(false);
+  isLoadingPreset = signal(false);
+  selectedPresetDifficulty = signal<TrainingDifficulty | null>(null);
   submitted = false;
   isSubmitting = false;
   errorMessage: string | null = null;
@@ -264,6 +312,68 @@ export class CreateTrainingPage implements OnInit {
           this.closeUserMenu();
         }
       }
+    });
+  }
+
+  loadPreset(difficulty: TrainingDifficulty): void {
+    const type = this.form.get('type')?.value;
+    if (!type) return;
+
+    const token = this.#authService.getToken();
+    if (!token) return;
+
+    this.isLoadingPreset.set(true);
+    this.selectedPresetDifficulty.set(difficulty);
+
+    const params = { type, difficulty };
+    this.#httpClient
+      .get<Record<string, unknown>>(this.presetsUrl, {
+        params,
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      .subscribe({
+        next: (preset) => {
+          this.applyPresetToForm(preset);
+          this.isLoadingPreset.set(false);
+          this.selectedPresetDifficulty.set(null);
+        },
+        error: () => {
+          this.errorMessage = 'Impossible de charger le preset.';
+          this.isLoadingPreset.set(false);
+          this.selectedPresetDifficulty.set(null);
+        },
+      });
+  }
+
+  private applyPresetToForm(preset: Record<string, unknown>): void {
+    const raw = preset['data'] != null ? (preset['data'] as Record<string, unknown>) : preset;
+
+    const durationSeconds = raw['durationSeconds'];
+    const durationMinutes =
+      durationSeconds != null && typeof durationSeconds === 'number'
+        ? Math.round(durationSeconds / 60)
+        : null;
+
+    const distanceMeters = raw['distanceMeters'];
+    const distanceKm =
+      distanceMeters != null && typeof distanceMeters === 'number'
+        ? Math.round((distanceMeters / 1000) * 100) / 100
+        : null;
+
+    const vStr = (x: unknown): string | null => (typeof x === 'string' ? x : null);
+    const vNum = (x: unknown): number | null => (typeof x === 'number' ? x : null);
+
+    this.form.patchValue({
+      exerciseName: vStr(raw['exerciseName']) ?? null,
+      format: (typeof raw['format'] === 'string' ? raw['format'] as TrainingFormat : null) ?? null,
+      rounds: vNum(raw['rounds']) ?? null,
+      sets: vNum(raw['sets']) ?? null,
+      reps: vNum(raw['reps']) ?? null,
+      weightKg: vNum(raw['weightKg']) ?? null,
+      restSeconds: vNum(raw['restSeconds']) ?? null,
+      comment: vStr(raw['comment']) ?? null,
+      durationMinutes,
+      distanceKm,
     });
   }
 
