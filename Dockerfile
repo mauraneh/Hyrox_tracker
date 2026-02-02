@@ -7,7 +7,7 @@ WORKDIR /app
 COPY package*.json ./
 RUN npm ci
 
-COPY frontend .
+COPY . .
 
 EXPOSE 4200
 CMD ["npm", "start"]
