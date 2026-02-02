@@ -70,3 +70,24 @@ export interface RoxzoneStats {
   runTotal: BestAvgLatest;
   bestRunLap: BestAvgLatest;
 }
+
+export interface CourseTime {
+  id: string;
+  segment: string;
+  timeSeconds: number;
+  place: number | null;
+}
+
+export interface Course {
+  id: string;
+  name: string;
+  city: string;
+  date: string;
+  category: string;
+  totalTime: number;
+  roxzoneTime: number | null;
+  runTotal: number | null;
+  bestRunLap: number | null;
+  notes: string | null;
+  times?: CourseTime[];
+}

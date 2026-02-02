@@ -7,22 +7,22 @@ import { AuthService } from 'src/app/core/auth/auth.service';
 import { environment } from 'src/environments/environment';
 
 const SEGMENTS = [
-  { key: 'run1', label: 'Run 1' },
-  { key: 'skiErg', label: '1000m SkiErg' },
-  { key: 'run2', label: 'Run 2' },
-  { key: 'sledPush', label: '50m Sled Push' },
-  { key: 'run3', label: 'Run 3' },
-  { key: 'sledPull', label: '50m Sled Pull' },
-  { key: 'run4', label: 'Run 4' },
-  { key: 'burpeeBroadJump', label: '80m Burpee Broad Jump' },
-  { key: 'run5', label: 'Run 5' },
-  { key: 'row', label: '1000m Row' },
-  { key: 'run6', label: 'Run 6' },
-  { key: 'farmerCarry', label: '200m Farmers Carry' },
-  { key: 'run7', label: 'Run 7' },
-  { key: 'sandbagLunges', label: '100m Sandbag Lunges' },
-  { key: 'run8', label: 'Run 8' },
-  { key: 'wallBalls', label: 'Wall Balls' },
+  { key: 'run1', label: 'Run 1', hasPlace: false },
+  { key: 'skiErg', label: '1000m SkiErg', hasPlace: true },
+  { key: 'run2', label: 'Run 2', hasPlace: false },
+  { key: 'sledPush', label: '50m Sled Push', hasPlace: true },
+  { key: 'run3', label: 'Run 3', hasPlace: false },
+  { key: 'sledPull', label: '50m Sled Pull', hasPlace: true },
+  { key: 'run4', label: 'Run 4', hasPlace: false },
+  { key: 'burpeeBroadJump', label: '80m Burpee Broad Jump', hasPlace: true },
+  { key: 'run5', label: 'Run 5', hasPlace: false },
+  { key: 'row', label: '1000m Row', hasPlace: true },
+  { key: 'run6', label: 'Run 6', hasPlace: false },
+  { key: 'farmerCarry', label: '200m Farmers Carry', hasPlace: true },
+  { key: 'run7', label: 'Run 7', hasPlace: false },
+  { key: 'sandbagLunges', label: '100m Sandbag Lunges', hasPlace: true },
+  { key: 'run8', label: 'Run 8', hasPlace: false },
+  { key: 'wallBalls', label: 'Wall Balls', hasPlace: true },
 ];
 
 @Component({
@@ -176,7 +176,7 @@ const SEGMENTS = [
           <div class="card">
             <h2 class="text-xl font-bold text-white mb-6">Temps par segment</h2>
             <p class="text-sm text-hyrox-gray-400 mb-4">
-              Renseignez les temps et positions (optionnel) pour chaque segment
+              Renseignez les temps et, pour les stations, la position (optionnel)
             </p>
 
             <div class="space-y-4">
@@ -195,17 +195,19 @@ const SEGMENTS = [
                     placeholder="5:28"
                   />
                 </div>
-                <div>
-                  <label class="label text-xs" for="segment-place-{{i}}">Position (optionnel)</label>
-                  <input
-                    id="segment-place-{{i}}"
-                    type="number"
-                    class="input text-sm"
-                    [formControl]="getSegmentControl(i, 'place')"
-                    placeholder="182"
-                    min="1"
-                  />
-                </div>
+                @if (segment.hasPlace) {
+                  <div>
+                    <label class="label text-xs" for="segment-place-{{i}}">Position (optionnel)</label>
+                    <input
+                      id="segment-place-{{i}}"
+                      type="number"
+                      class="input text-sm"
+                      [formControl]="getSegmentControl(i, 'place')"
+                      placeholder="182"
+                      min="1"
+                    />
+                  </div>
+                }
               </div>
               }
             </div>
@@ -329,16 +331,23 @@ export class CourseNewPage {
 
     SEGMENTS.forEach((segment, index) => {
       const segmentGroup = segmentsArray.at(index);
-      const timeStr = segmentGroup.get('time')?.value;
-      const placeStr = segmentGroup.get('place')?.value;
+      const timeValue = segmentGroup.get('time')?.value;
+      const placeValue = segmentGroup.get('place')?.value;
 
-      if (timeStr && timeStr.trim() !== '') {
+      const timeStr = typeof timeValue === 'string' ? timeValue.trim() : String(timeValue ?? '');
+      if (timeStr !== '') {
         const timeSeconds = this.parseTimeToSeconds(timeStr);
         if (timeSeconds !== null) {
+          const place =
+            placeValue != null && placeValue !== ''
+              ? typeof placeValue === 'number'
+                ? (Number.isNaN(placeValue) ? undefined : placeValue)
+                : parseInt(String(placeValue).trim(), 10)
+              : undefined;
           times.push({
             segment: segment.key,
             timeSeconds,
-            place: placeStr && placeStr.trim() !== '' ? parseInt(placeStr, 10) : undefined,
+            place: place !== undefined && !Number.isNaN(place) ? place : undefined,
           });
         }
       }
