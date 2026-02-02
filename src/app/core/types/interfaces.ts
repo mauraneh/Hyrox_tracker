@@ -70,3 +70,21 @@ export interface RoxzoneStats {
   runTotal: BestAvgLatest;
   bestRunLap: BestAvgLatest;
 }
+
+export interface Training {
+  id: string;
+  type: string;
+  date: string;
+  exerciseName?: string | null;
+  format?: string | null;
+  rounds?: number | null;
+  sets?: number | null;
+  reps?: number | null;
+  weightKg?: number | null;
+  durationSeconds?: number | null;
+  distanceMeters?: number | null;
+  restSeconds?: number | null;
+  comment?: string | null;
+  createdAt?: string;
+  updatedAt?: string;
+}
