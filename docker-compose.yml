@@ -1,80 +1,7 @@
 services:
-  # =========================
-  # LOCAL
-  # =========================
-  postgres:
-    image: postgres:15-alpine
-    container_name: hyrox-db
-    restart: unless-stopped
-    environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: hyrox_db
-    ports:
-      - '5432:5432'
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-    networks:
-      - hyrox-network
-    healthcheck:
-      test: ['CMD-SHELL', 'pg_isready -U postgres']
-      interval: 10s
-      timeout: 5s
-      retries: 5
-
-  # One-shot init DB (LOCAL): generate + migrate + seed
-  db-init:
-    build:
-      context: ./backend
-      dockerfile: Dockerfile
-      target: development
-    container_name: hyrox-db-init
-    restart: "no"
-    environment:
-      NODE_ENV: development
-      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/hyrox_db
-    depends_on:
-      postgres:
-        condition: service_healthy
-    networks:
-      - hyrox-network
-    command: >
-      sh -c "
-        npm run prisma:generate &&
-        npm run prisma:migrate &&
-        npm run prisma:seed
-      "
-
-  backend:
-    build:
-      context: ./backend
-      dockerfile: Dockerfile
-      target: development
-    container_name: hyrox-backend
-    restart: unless-stopped
-    ports:
-      - '3000:3000'
-    environment:
-      NODE_ENV: development
-      PORT: 3000
-      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/hyrox_db
-      JWT_SECRET: dev-secret-key
-      JWT_EXPIRATION: 7d
-      CORS_ORIGIN: http://localhost:4200,http://127.0.0.1:4200
-    depends_on:
-      postgres:
-        condition: service_healthy
-      db-init:
-        condition: service_completed_successfully
-    networks:
-      - hyrox-network
-    volumes:
-      - ./backend:/app
-    command: npm run start:dev
-
   frontend:
     build:
-      context: ./frontend
+      context: .
       dockerfile: Dockerfile
       target: development
     container_name: hyrox-frontend
@@ -84,17 +11,11 @@ services:
     environment:
       - NODE_ENV=development
     volumes:
-      - ./frontend:/app
+      - .:/app
       - /app/node_modules
     networks:
       - hyrox-network
-    depends_on:
-      - backend
     command: npm start
-
-volumes:
-  postgres_data:
-    driver: local
 
 networks:
   hyrox-network:
