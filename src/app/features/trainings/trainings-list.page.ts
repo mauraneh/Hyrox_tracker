@@ -1,10 +1,39 @@
 import { CommonModule } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
-import { Component, inject, OnInit, signal } from '@angular/core';
+import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import { AuthService } from 'src/app/core/auth/auth.service';
 import { Training } from 'src/app/core/types/interfaces';
 import { environment } from 'src/environments/environment';
+
+type TrainingSortOrder = 'date-desc' | 'date-asc' | 'type-asc' | 'type-desc' | 'difficulty-asc' | 'difficulty-desc';
+
+function compareTrainings(a: Training, b: Training, order: TrainingSortOrder): number {
+  switch (order) {
+    case 'date-desc':
+      return new Date(b.date).getTime() - new Date(a.date).getTime();
+    case 'date-asc':
+      return new Date(a.date).getTime() - new Date(b.date).getTime();
+    case 'type-asc':
+      return (a.type ?? '').localeCompare(b.type ?? '', 'fr');
+    case 'type-desc':
+      return (b.type ?? '').localeCompare(a.type ?? '', 'fr');
+    case 'difficulty-asc': {
+      const orderDiff = ['novice', 'intermediate', 'expert'];
+      const ia = orderDiff.indexOf((a.difficulty ?? '').toLowerCase());
+      const ib = orderDiff.indexOf((b.difficulty ?? '').toLowerCase());
+      return (ia === -1 ? 99 : ia) - (ib === -1 ? 99 : ib);
+    }
+    case 'difficulty-desc': {
+      const orderDiff = ['expert', 'intermediate', 'novice'];
+      const ia = orderDiff.indexOf((a.difficulty ?? '').toLowerCase());
+      const ib = orderDiff.indexOf((b.difficulty ?? '').toLowerCase());
+      return (ia === -1 ? -1 : ia) - (ib === -1 ? -1 : ib);
+    }
+    default:
+      return 0;
+  }
+}
 
 @Component({
   selector: 'app-trainings-list',
@@ -103,8 +132,69 @@ import { environment } from 'src/environments/environment';
             <a routerLink="/create-training" class="btn-primary">Ajouter un entraînement</a>
           </div>
         } @else {
+          <!-- Filtres et tri -->
+          <div class="card border-hyrox-gray-800 mb-6">
+            <div class="flex flex-wrap items-end gap-4">
+              <div class="flex flex-col gap-1">
+                <label for="sort-order" class="text-xs font-medium text-hyrox-gray-400">Tri</label>
+                <select
+                  id="sort-order"
+                  [value]="sortOrder()"
+                  (change)="sortOrder.set($any($event.target).value)"
+                  class="input min-w-[200px]"
+                >
+                  @for (opt of sortOptions; track opt.value) {
+                    <option [value]="opt.value">{{ opt.label }}</option>
+                  }
+                </select>
+              </div>
+              <div class="flex flex-col gap-1">
+                <label for="filter-type" class="text-xs font-medium text-hyrox-gray-400">Type</label>
+                <select
+                  id="filter-type"
+                  [value]="filterType()"
+                  (change)="filterType.set($any($event.target).value)"
+                  class="input min-w-[140px]"
+                >
+                  <option value="">Tous</option>
+                  @for (type of uniqueTypes(); track type) {
+                    <option [value]="type">{{ type }}</option>
+                  }
+                </select>
+              </div>
+              <div class="flex flex-col gap-1">
+                <label for="filter-difficulty" class="text-xs font-medium text-hyrox-gray-400">Niveau</label>
+                <select
+                  id="filter-difficulty"
+                  [value]="filterDifficulty()"
+                  (change)="filterDifficulty.set($any($event.target).value)"
+                  class="input min-w-[140px]"
+                >
+                  @for (opt of difficultyFilterOptions; track opt.value) {
+                    <option [value]="opt.value">{{ opt.label }}</option>
+                  }
+                </select>
+              </div>
+              <button type="button" (click)="resetFilters()" class="btn-outline shrink-0">
+                Réinitialiser les filtres
+              </button>
+            </div>
+            <p class="text-hyrox-gray-400 text-sm mt-3">
+              {{ filteredTrainings().length }} entraînement(s) affiché(s)
+              @if (filteredTrainings().length !== trainings().length) {
+                sur {{ trainings().length }}
+              }
+            </p>
+          </div>
+
+          @if (filteredTrainings().length === 0) {
+            <div class="card text-center py-12">
+              <p class="text-hyrox-gray-400 mb-6">Aucun entraînement ne correspond aux filtres.</p>
+              <button type="button" (click)="resetFilters()" class="btn-outline">Réinitialiser les filtres</button>
+            </div>
+          } @else {
           <ul class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 list-none p-0 m-0">
-            @for (t of trainings(); track t.id) {
+            @for (t of filteredTrainings(); track t.id) {
               <li>
                 <div class="card border-hyrox-gray-800 hover:border-hyrox-yellow/30 transition-colors h-full flex flex-col">
                   <div class="flex justify-between items-start gap-2">
@@ -156,6 +246,7 @@ import { environment } from 'src/environments/environment';
               </li>
             }
           </ul>
+          }
         }
       </main>
 
@@ -187,6 +278,48 @@ export class TrainingsListPage implements OnInit {
   errorMessage = signal<string | null>(null);
   deletingId = signal<string | null>(null);
   confirmDeleteId = signal<string | null>(null);
+
+  filterType = signal<string>('');
+  filterDifficulty = signal<string>('');
+  sortOrder = signal<TrainingSortOrder>('date-desc');
+
+  readonly sortOptions: { value: TrainingSortOrder; label: string }[] = [
+    { value: 'date-desc', label: 'Date (récent → ancien)' },
+    { value: 'date-asc', label: 'Date (ancien → récent)' },
+    { value: 'type-asc', label: 'Type (A-Z)' },
+    { value: 'type-desc', label: 'Type (Z-A)' },
+    { value: 'difficulty-asc', label: 'Niveau (Novice → Expert)' },
+    { value: 'difficulty-desc', label: 'Niveau (Expert → Novice)' },
+  ];
+
+  readonly difficultyFilterOptions: { value: string; label: string }[] = [
+    { value: '', label: 'Tous' },
+    { value: 'novice', label: 'Novice' },
+    { value: 'intermediate', label: 'Intermédiaire' },
+    { value: 'expert', label: 'Expert' },
+  ];
+
+  uniqueTypes = computed(() => {
+    const list = this.trainings();
+    return [...new Set(list.map((t) => t.type).filter(Boolean))].sort();
+  });
+
+  filteredTrainings = computed(() => {
+    const list = this.trainings();
+    const typeFilter = this.filterType().trim();
+    const difficultyFilter = this.filterDifficulty().trim().toLowerCase();
+    const order = this.sortOrder();
+    let result = list.filter((t) => {
+      if (typeFilter && t.type !== typeFilter) return false;
+      if (difficultyFilter) {
+        const d = (t.difficulty ?? '').toLowerCase();
+        if (d !== difficultyFilter) return false;
+      }
+      return true;
+    });
+    result = [...result].sort((a, b) => compareTrainings(a, b, order));
+    return result;
+  });
 
   #router = inject(Router);
   private readonly apiUrl = `${environment.apiUrl}/trainings`;
@@ -239,6 +372,12 @@ export class TrainingsListPage implements OnInit {
 
   cancelDelete(): void {
     this.confirmDeleteId.set(null);
+  }
+
+  resetFilters(): void {
+    this.filterType.set('');
+    this.filterDifficulty.set('');
+    this.sortOrder.set('date-desc');
   }
 
   confirmDelete(): void {

@@ -96,6 +96,7 @@ export interface Training {
   id: string;
   type: string;
   date: string;
+  difficulty?: string | null;
   exerciseName?: string | null;
   format?: string | null;
   rounds?: number | null;
