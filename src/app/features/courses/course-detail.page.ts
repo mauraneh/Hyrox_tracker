@@ -45,8 +45,6 @@ export class CourseDetailPage implements OnInit, OnDestroy {
   showUserMenu = signal(false);
   isDeleting = signal(false);
 
-  readonly SEGMENT_LABELS = SEGMENT_LABELS;
-
   ngOnInit(): void {
     document.addEventListener('click', this.#handleDocumentClick);
     const id = this.#route.snapshot.paramMap.get('id');
