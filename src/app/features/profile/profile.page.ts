@@ -1,4 +1,4 @@
-import { Component, inject, OnInit, signal } from '@angular/core';
+import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
@@ -152,12 +152,20 @@ import { Goal, User } from 'src/app/core/types/interfaces';
           </form>
         </div>
 
-        <!-- Objectifs personnels -->
+        <!-- Objectifs personnels (todo-list) -->
         <div class="card">
-          <div class="flex items-center justify-between mb-6">
-            <h2 class="text-xl font-bold text-white">Objectifs personnels</h2>
-            <button (click)="showGoalForm.set(true)" class="btn-primary text-sm" [disabled]="showGoalForm()">
-              + Ajouter un objectif
+          <div class="flex flex-wrap items-center justify-between gap-4 mb-6">
+            <h2 class="text-xl font-bold text-white">Mes objectifs</h2>
+            <button
+              type="button"
+              (click)="showGoalForm.set(true)"
+              class="btn-primary text-sm inline-flex items-center gap-2"
+              [disabled]="showGoalForm()"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+              </svg>
+              Ajouter un objectif
             </button>
           </div>
 
@@ -167,41 +175,51 @@ import { Goal, User } from 'src/app/core/types/interfaces';
           </div>
           }
 
-          <!-- Formulaire d'ajout/modification d'objectif -->
+          <!-- Barre de progression -->
+          @if (!isLoadingGoals() && goals().length > 0) {
+          <div class="mb-6">
+            <div class="flex justify-between text-sm mb-2">
+              <span class="text-hyrox-gray-400">{{ goalsProgress().achieved }} / {{ goalsProgress().total }} atteints</span>
+              <span class="text-hyrox-yellow font-semibold">{{ goalsProgress().percent }} %</span>
+            </div>
+            <div class="h-2 bg-hyrox-gray-800 rounded-full overflow-hidden">
+              <div
+                class="h-full bg-hyrox-yellow rounded-full transition-all duration-500"
+                [style.width.%]="goalsProgress().percent"
+              ></div>
+            </div>
+          </div>
+          }
+
+          <!-- Formulaire d'ajout/modification -->
           @if (showGoalForm()) {
-          <div class="mb-6 p-4 bg-hyrox-gray-800 rounded-lg border border-hyrox-gray-700">
+          <div class="mb-6 p-4 bg-hyrox-gray-800 rounded-xl border-2 border-hyrox-yellow/30">
             <h3 class="text-lg font-semibold text-white mb-4">
               {{ editingGoal() ? "Modifier l'objectif" : 'Nouvel objectif' }}
             </h3>
             <form [formGroup]="goalForm" (ngSubmit)="saveGoal()">
               <div class="space-y-4">
                 <div>
-                  <label class="label" for="goalTitle">Titre de l'objectif</label>
+                  <label class="label" for="goalTitle">Titre</label>
                   <input type="text" id="goalTitle" class="input" formControlName="title" placeholder="Ex: Passer sous 1h25" />
                   @if (goalForm.controls['title'].invalid && goalForm.controls['title'].touched) {
                   <p class="mt-1 text-sm text-red-400">Titre requis (3-100 caractères)</p>
                   }
                 </div>
-
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <label class="label" for="targetTime">Temps cible (heures:minutes:secondes)</label>
+                    <label class="label" for="targetTime">Temps cible (H:MM:SS)</label>
                     <input type="text" id="targetTime" class="input" formControlName="targetTime" placeholder="1:25:00" />
-                    <p class="mt-1 text-xs text-hyrox-gray-500">Format: H:MM:SS</p>
                   </div>
-
                   <div>
                     <label class="label" for="targetDate">Date cible</label>
                     <input type="date" id="targetDate" class="input" formControlName="targetDate" />
                   </div>
                 </div>
-
-                <div class="flex space-x-4">
+                <div class="flex flex-wrap gap-2">
                   <button type="submit" class="btn-primary" [disabled]="goalForm.invalid || isSavingGoal()">
-                    @if (isSavingGoal()) {
-                    <span>Enregistrement...</span>
-                    } @else {
-                    <span>{{ editingGoal() ? 'Modifier' : 'Créer' }}</span>
+                    @if (isSavingGoal()) { <span>Enregistrement...</span> } @else {
+                    <span>{{ editingGoal() ? 'Modifier' : 'Ajouter' }}</span>
                     }
                   </button>
                   <button type="button" (click)="cancelGoalForm()" class="btn-outline">Annuler</button>
@@ -211,49 +229,136 @@ import { Goal, User } from 'src/app/core/types/interfaces';
           </div>
           }
 
-          <!-- Liste des objectifs -->
+          <!-- Liste type todo-list -->
           @if (isLoadingGoals()) {
           <p class="text-hyrox-gray-400">Chargement des objectifs...</p>
           } @else if (goals().length === 0) {
-          <p class="text-hyrox-gray-400">Aucun objectif défini pour le moment.</p>
+          <div class="text-center py-8 rounded-xl bg-hyrox-gray-800/50 border border-dashed border-hyrox-gray-700">
+            <p class="text-hyrox-gray-400 mb-4">Aucun objectif pour l'instant.</p>
+            <button type="button" (click)="showGoalForm.set(true)" class="btn-outline text-sm">
+              Créer mon premier objectif
+            </button>
+          </div>
           } @else {
-          <div class="space-y-4">
-            @for (goal of goals(); track goal.id) {
-            <div class="p-4 border border-hyrox-gray-700 rounded-lg" [ngClass]="{'bg-green-900/20 border-green-500/50': goal.achieved}">
-              <div class="flex items-start justify-between">
-                <div class="flex-1">
-                  <div class="flex items-center space-x-2 mb-2">
-                    <h3 class="text-lg font-semibold text-white">{{ goal.title }}</h3>
-                    @if (goal.achieved) {
-                    <span class="px-2 py-1 text-xs font-medium bg-green-900/30 text-green-300 rounded border border-green-500/50">
-                      Atteint
-                    </span>
-                    }
+          <div class="space-y-6">
+            <!-- À atteindre -->
+            @if (pendingGoals().length > 0) {
+            <div>
+              <h3 class="text-sm font-semibold text-hyrox-yellow uppercase tracking-wide mb-3 flex items-center gap-2">
+                <span class="w-2 h-2 rounded-full bg-hyrox-yellow"></span>
+                À atteindre ({{ pendingGoals().length }})
+              </h3>
+              <ul class="space-y-2 list-none p-0 m-0">
+                @for (goal of pendingGoals(); track goal.id) {
+                <li
+                  class="group flex items-start gap-4 p-4 rounded-xl border-2 border-hyrox-gray-700 bg-hyrox-gray-800/50 hover:border-hyrox-yellow/40 transition-colors"
+                >
+                  <button
+                    type="button"
+                    (click)="markAsAchieved(goal.id)"
+                    class="mt-0.5 flex-shrink-0 w-6 h-6 rounded-full border-2 border-hyrox-yellow bg-transparent hover:bg-hyrox-yellow/20 focus:outline-none focus:ring-2 focus:ring-hyrox-yellow focus:ring-offset-2 focus:ring-offset-hyrox-gray-900 transition-colors"
+                    title="Marquer comme atteint"
+                    aria-label="Marquer comme atteint"
+                  ></button>
+                  <div class="flex-1 min-w-0">
+                    <p class="font-semibold text-white">{{ goal.title }}</p>
+                    <div class="flex flex-wrap gap-x-4 gap-y-1 mt-1 text-sm text-hyrox-gray-400">
+                      @if (goal.targetTime) {
+                      <span>Temps cible: {{ formatTime(goal.targetTime) }}</span>
+                      }
+                      @if (goal.targetDate) {
+                      <span>Date: {{ formatDate(goal.targetDate) }}</span>
+                      }
+                    </div>
                   </div>
-                  @if (goal.targetTime) {
-                  <p class="text-sm text-hyrox-gray-400 mb-1">
-                    Temps cible: {{ formatTime(goal.targetTime) }}
-                  </p>
-                  }
-                  @if (goal.targetDate) {
-                  <p class="text-sm text-hyrox-gray-400 mb-1">
-                    Date cible: {{ formatDate(goal.targetDate) }}
-                  </p>
-                  }
-                  @if (goal.achieved && goal.achievedAt) {
-                  <p class="text-sm text-green-300">
-                    Atteint le: {{ formatDate(goal.achievedAt) }}
-                  </p>
-                  }
-                </div>
-                <div class="flex space-x-2">
-                  @if (!goal.achieved) {
-                  <button (click)="markAsAchieved(goal.id)" class="btn-outline text-sm">Marquer comme atteint</button>
-                  }
-                  <button (click)="editGoal(goal)" class="btn-outline text-sm">Modifier</button>
-                  <button (click)="deleteGoal(goal.id)" class="btn-outline text-sm text-red-400 hover:text-red-300">Supprimer</button>
-                </div>
-              </div>
+                  <div class="flex items-center gap-1 opacity-70 group-hover:opacity-100 transition-opacity">
+                    <button
+                      type="button"
+                      (click)="editGoal(goal)"
+                      class="p-2 rounded-lg text-hyrox-gray-400 hover:text-hyrox-yellow hover:bg-hyrox-gray-700 transition-colors"
+                      title="Modifier"
+                      aria-label="Modifier"
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                      </svg>
+                    </button>
+                    <button
+                      type="button"
+                      (click)="deleteGoal(goal.id)"
+                      class="p-2 rounded-lg text-hyrox-gray-400 hover:text-red-400 hover:bg-hyrox-gray-700 transition-colors"
+                      title="Supprimer"
+                      aria-label="Supprimer"
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                      </svg>
+                    </button>
+                  </div>
+                </li>
+                }
+              </ul>
+            </div>
+            }
+
+            <!-- Atteints -->
+            @if (achievedGoals().length > 0) {
+            <div>
+              <h3 class="text-sm font-semibold text-green-400 uppercase tracking-wide mb-3 flex items-center gap-2">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                </svg>
+                Atteints ({{ achievedGoals().length }})
+              </h3>
+              <ul class="space-y-2 list-none p-0 m-0">
+                @for (goal of achievedGoals(); track goal.id) {
+                <li class="group flex items-start gap-4 p-4 rounded-xl border border-green-500/30 bg-green-900/10">
+                  <span
+                    class="mt-0.5 flex-shrink-0 w-6 h-6 rounded-full bg-green-500 flex items-center justify-center"
+                    aria-hidden="true"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                    </svg>
+                  </span>
+                  <div class="flex-1 min-w-0">
+                    <p class="font-semibold line-through text-hyrox-gray-400">{{ goal.title }}</p>
+                    <div class="flex flex-wrap gap-x-4 gap-y-1 mt-1 text-sm text-green-300/90">
+                      @if (goal.targetTime) {
+                      <span>{{ formatTime(goal.targetTime) }}</span>
+                      }
+                      @if (goal.achievedAt) {
+                      <span>Atteint le {{ formatDate(goal.achievedAt) }}</span>
+                      }
+                    </div>
+                  </div>
+                  <div class="flex items-center gap-1 opacity-70 group-hover:opacity-100 transition-opacity">
+                    <button
+                      type="button"
+                      (click)="editGoal(goal)"
+                      class="p-2 rounded-lg text-hyrox-gray-400 hover:text-hyrox-yellow hover:bg-hyrox-gray-700 transition-colors"
+                      title="Modifier"
+                      aria-label="Modifier"
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                      </svg>
+                    </button>
+                    <button
+                      type="button"
+                      (click)="deleteGoal(goal.id)"
+                      class="p-2 rounded-lg text-hyrox-gray-400 hover:text-red-400 hover:bg-hyrox-gray-700 transition-colors"
+                      title="Supprimer"
+                      aria-label="Supprimer"
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                      </svg>
+                    </button>
+                  </div>
+                </li>
+                }
+              </ul>
             </div>
             }
           </div>
@@ -280,6 +385,14 @@ export class ProfilePage implements OnInit {
   showGoalForm = signal(false);
   editingGoal = signal<Goal | null>(null);
   isSavingGoal = signal(false);
+
+  pendingGoals = computed(() => this.goals().filter((goal) => !goal.achieved));
+  achievedGoals = computed(() => this.goals().filter((goal) => goal.achieved));
+  goalsProgress = computed(() => {
+    const list = this.goals();
+    const achieved = list.filter((goal) => goal.achieved).length;
+    return { achieved, total: list.length, percent: list.length ? Math.round((achieved / list.length) * 100) : 0 };
+  });
 
   profileForm = this.#fb.group({
     firstName: ['', [Validators.required, Validators.minLength(2), Validators.maxLength(50)]],
