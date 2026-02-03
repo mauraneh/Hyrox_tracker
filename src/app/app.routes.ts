@@ -51,6 +51,11 @@ export const routes: Routes = [
       import('./features/settings/settings.page').then((m) => m.SettingsPage),
   },
   {
+    path: 'training-around',
+    redirectTo: '/trainings/training-around',
+    pathMatch: 'full',
+  },
+  {
     path: '**',
     redirectTo: '/dashboard',
   },
