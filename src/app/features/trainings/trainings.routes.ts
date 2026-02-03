@@ -6,6 +6,10 @@ export const routes: Routes = [
     loadComponent: () => import('./trainings-list.page').then((m) => m.TrainingsListPage),
   },
   {
+    path: 'training-around',
+    loadComponent: () => import('./training-around.page').then((m) => m.TrainingAroundPage),
+  },
+  {
     path: ':id/edit',
     loadComponent: () => import('./training-edit.page').then((m) => m.TrainingEditPage),
   },
@@ -14,5 +18,3 @@ export const routes: Routes = [
     loadComponent: () => import('./training-detail.page').then((m) => m.TrainingDetailPage),
   },
 ];
-
-
