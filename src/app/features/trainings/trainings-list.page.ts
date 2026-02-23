@@ -1,7 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
 import { Component, computed, inject, OnInit, signal } from '@angular/core';
-import { Router, RouterLink } from '@angular/router';
+import { RouterLink } from '@angular/router';
 import { AuthService } from 'src/app/core/auth/auth.service';
 import { Training } from 'src/app/core/types/interfaces';
 import { environment } from 'src/environments/environment';
@@ -218,13 +218,13 @@ function compareTrainings(a: Training, b: Training, order: TrainingSortOrder): n
                       }
                       <p class="text-hyrox-yellow font-semibold text-sm mb-3">{{ formatDate(t.date) }}</p>
                       <div class="flex flex-wrap gap-2 mt-auto">
-                        @if (t.durationSeconds != null && t.durationSeconds > 0) {
+                        @if (t.durationSeconds !== null && t.durationSeconds !== undefined && t.durationSeconds > 0) {
                           <span class="inline-block px-2 py-1 rounded bg-hyrox-gray-800 text-hyrox-gray-300 text-xs font-medium">{{ formatDuration(t.durationSeconds) }}</span>
                         }
-                        @if (t.distanceMeters != null && t.distanceMeters > 0) {
+                        @if (t.distanceMeters !== null && t.distanceMeters !== undefined && t.distanceMeters > 0) {
                           <span class="inline-block px-2 py-1 rounded bg-hyrox-yellow/20 text-hyrox-yellow text-xs font-semibold">{{ formatDistance(t.distanceMeters) }}</span>
                         }
-                        @if (t.rounds != null && t.rounds > 0) {
+                        @if (t.rounds !== null && t.rounds !== undefined && t.rounds > 0) {
                           <span class="inline-block px-2 py-1 rounded bg-hyrox-gray-800 text-hyrox-gray-300 text-xs font-medium">{{ t.rounds }} rounds</span>
                         }
                       </div>
@@ -334,7 +334,6 @@ export class TrainingsListPage implements OnInit {
     return result;
   });
 
-  #router = inject(Router);
   private readonly apiUrl = `${environment.apiUrl}/trainings`;
 
   ngOnInit(): void {

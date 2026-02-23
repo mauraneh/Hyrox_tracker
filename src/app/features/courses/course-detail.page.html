@@ -130,23 +130,27 @@
         </dl>
       </div>
 
-      @if (course()!.roxzoneTime != null || course()!.runTotal != null || course()!.bestRunLap != null) {
+      @if (
+        (course()!.roxzoneTime !== null && course()!.roxzoneTime !== undefined) ||
+        (course()!.runTotal !== null && course()!.runTotal !== undefined) ||
+        (course()!.bestRunLap !== null && course()!.bestRunLap !== undefined)
+      ) {
         <div class="card mb-6">
           <h2 class="text-xl font-bold text-white mb-4">Statistiques globales</h2>
           <dl class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            @if (course()!.roxzoneTime != null) {
+            @if (course()!.roxzoneTime !== null && course()!.roxzoneTime !== undefined) {
               <div>
                 <dt class="text-sm text-hyrox-gray-400">Roxzone Time</dt>
                 <dd class="text-hyrox-yellow font-semibold">{{ formatTime(course()!.roxzoneTime!) }}</dd>
               </div>
             }
-            @if (course()!.runTotal != null) {
+            @if (course()!.runTotal !== null && course()!.runTotal !== undefined) {
               <div>
                 <dt class="text-sm text-hyrox-gray-400">Run Total</dt>
                 <dd class="text-hyrox-yellow font-semibold">{{ formatTime(course()!.runTotal!) }}</dd>
               </div>
             }
-            @if (course()!.bestRunLap != null) {
+            @if (course()!.bestRunLap !== null && course()!.bestRunLap !== undefined) {
               <div>
                 <dt class="text-sm text-hyrox-gray-400">Best Run Lap</dt>
                 <dd class="text-hyrox-yellow font-semibold">{{ formatTime(course()!.bestRunLap!) }}</dd>
@@ -165,7 +169,7 @@
                 <span class="text-white font-medium">{{ getSegmentLabel(time.segment) }}</span>
                 <div class="flex items-center gap-3">
                   <span class="text-hyrox-yellow font-semibold">{{ formatTime(time.timeSeconds) }}</span>
-                  @if (time.place != null) {
+                  @if (time.place !== null && time.place !== undefined) {
                     <span class="text-hyrox-gray-400 text-sm">Position {{ time.place }}</span>
                   }
                 </div>

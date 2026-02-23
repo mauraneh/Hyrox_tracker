@@ -12,11 +12,16 @@ services:
       - NODE_ENV=development
     volumes:
       - .:/app
-      - /app/node_modules
+      - node_modules:/app/node_modules
     networks:
       - hyrox-network
-    command: npm start
+    command: >
+      sh -c "if [ ! -d node_modules ] || [ -z \"$(ls -A node_modules 2>/dev/null)\" ] ||
+      ! npm ls --depth=0 >/dev/null 2>&1; then npm ci; fi; npm start"
 
 networks:
   hyrox-network:
     driver: bridge
+
+volumes:
+  node_modules:

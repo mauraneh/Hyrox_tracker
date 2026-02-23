@@ -16,11 +16,11 @@
       "prefix": "app",
       "architect": {
         "build": {
-          "builder": "@angular-devkit/build-angular:application",
+          "builder": "@angular-devkit/build-angular:browser",
           "options": {
             "outputPath": "dist/frontend",
             "index": "src/index.html",
-            "browser": "src/main.ts",
+            "main": "src/main.ts",
             "polyfills": ["zone.js"],
             "tsConfig": "tsconfig.app.json",
             "assets": [
@@ -33,6 +33,13 @@
             "scripts": []
           },
           "configurations": {
+            "production": {
+              "optimization": true,
+              "outputHashing": "all",
+              "sourceMap": false,
+              "namedChunks": false,
+              "extractLicenses": true
+            },
             "development": {
               "optimization": false,
               "extractLicenses": false,
@@ -44,9 +51,15 @@
         },
         "serve": {
           "builder": "@angular-devkit/build-angular:dev-server",
+          "options": {
+            "buildTarget": "frontend:build:development"
+          },
           "configurations": {
             "development": {
               "buildTarget": "frontend:build:development"
+            },
+            "production": {
+              "buildTarget": "frontend:build:production"
             }
           },
           "defaultConfiguration": "development"
@@ -82,5 +95,3 @@
     "analytics": "68118eaf-848e-4d5b-8cdf-c485a6d04abe"
   }
 }
-
-
