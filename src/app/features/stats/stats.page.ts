@@ -6,12 +6,12 @@ import { AuthService } from 'src/app/core/auth/auth.service';
 import { environment } from 'src/environments/environment';
 import { forkJoin } from 'rxjs';
 import { StatsOverview, ProgressionData, StationStats, RoxzoneStats } from 'src/app/core/types/interfaces';
-import { CoursesComparisonChartComponent } from 'src/app/shared/charts/courses-comparison-chart.component';
+import { StationsComparisonChartComponent } from 'src/app/shared/charts/stations-comparison-chart.component';
 
 @Component({
   selector: 'app-stats',
   standalone: true,
-  imports: [RouterLink, CommonModule, CoursesComparisonChartComponent],
+  imports: [RouterLink, CommonModule, StationsComparisonChartComponent],
   template: `
     <div class="min-h-screen bg-hyrox-black">
       <nav class="bg-hyrox-gray-900 border-b border-hyrox-gray-700">
@@ -226,15 +226,17 @@ import { CoursesComparisonChartComponent } from 'src/app/shared/charts/courses-c
         </div>
         }
 
-        <!-- Graphique de comparaison des courses -->
-        @if (progression().length > 1) {
+        <!-- Graphique de comparaison par station -->
+        @if (stationStats() && getStationNames().length > 0) {
         <div class="card mb-8">
-          <h2 class="text-xl font-bold text-white mb-2">Comparaison des courses</h2>
+          <h2 class="text-xl font-bold text-white mb-2">Comparaison par station</h2>
           <p class="text-sm text-hyrox-gray-400 mb-6">
-            Temps total par course — la barre
-            <span class="inline-block w-3 h-3 rounded-sm bg-green-500 align-middle mx-1"></span>verte correspond à votre meilleur temps.
+            Temps par station —
+            <span class="inline-block w-3 h-3 rounded-sm bg-green-500 align-middle mx-1"></span>Meilleur ·
+            <span class="inline-block w-3 h-3 rounded-sm bg-hyrox-yellow align-middle mx-1"></span>Moyenne ·
+            <span class="inline-block w-3 h-3 rounded-sm bg-blue-500 align-middle mx-1"></span>Dernier
           </p>
-          <app-courses-comparison-chart [courses]="progression()"></app-courses-comparison-chart>
+          <app-stations-comparison-chart [stats]="stationStats()"></app-stations-comparison-chart>
         </div>
         }
 
