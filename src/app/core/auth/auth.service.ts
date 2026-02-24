@@ -1,5 +1,5 @@
 import { Injectable, inject, signal } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { tap } from 'rxjs/operators';
 import { environment } from 'src/environments/environment';
@@ -69,8 +69,10 @@ export class AuthService {
           this.#currentUser.set(response.data);
           this.#isAuthenticated.set(true);
         },
-        error: () => {
-          this.logout();
+        error: (error: HttpErrorResponse) => {
+          if (error.status === 401 || error.status === 403) {
+            this.logout();
+          }
         },
       });
   }
@@ -86,5 +88,4 @@ export class AuthService {
     this.#router.navigate(['/dashboard']);
   }
 }
-
 
