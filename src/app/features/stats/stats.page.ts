@@ -148,9 +148,9 @@ import { StatsOverview, ProgressionData, StationStats, RoxzoneStats } from 'src/
                   <th class="px-6 py-3 text-left text-xs font-medium text-hyrox-gray-500 uppercase tracking-wider">Catégorie</th>
                 </tr>
               </thead>
-              <tbody class="bg-hyrox-gray-900 divide-y divide-dark-200 dark:divide-dark-700">
+              <tbody class="divide-y divide-hyrox-gray-700">
                 @for (course of progression(); track course.id) {
-                <tr>
+                <tr class="bg-hyrox-gray-900 even:bg-hyrox-gray-800">
                   <td class="px-6 py-4 whitespace-nowrap text-sm text-white">
                     {{ formatDate(course.date) }}
                   </td>

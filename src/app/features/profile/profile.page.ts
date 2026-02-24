@@ -141,7 +141,7 @@ import { Goal, User } from 'src/app/core/types/interfaces';
             </div>
 
             <div class="mt-6">
-              <button type="submit" class="btn-primary" [disabled]="profileForm.invalid || isUpdatingProfile()">
+              <button type="submit" class="btn-primary" [disabled]="profileForm.invalid || !profileForm.dirty || isUpdatingProfile()">
                 @if (isUpdatingProfile()) {
                 <span>Enregistrement...</span>
                 } @else {
@@ -459,6 +459,7 @@ export class ProfilePage implements OnInit {
         next: () => {
           this.profileSuccess.set('Profil mis à jour avec succès');
           this.#authService.loadCurrentUser();
+          this.profileForm.markAsPristine();
           this.isUpdatingProfile.set(false);
         },
         error: (error) => {

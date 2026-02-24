@@ -47,6 +47,14 @@
     @apply backdrop-blur-sm;
   }
 
+  .card.border-hyrox-yellow\/20,
+  .card.text-center.py-12,
+  .card.mb-8,
+  .card {
+    border-width: 1px;
+    border-color: #FFD700;
+  }
+
   .label {
     @apply mb-2 block text-sm font-semibold text-hyrox-gray-300;
   }
