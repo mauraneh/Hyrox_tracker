@@ -6,11 +6,12 @@ import { AuthService } from 'src/app/core/auth/auth.service';
 import { environment } from 'src/environments/environment';
 import { forkJoin } from 'rxjs';
 import { StatsOverview, ProgressionData, StationStats, RoxzoneStats } from 'src/app/core/types/interfaces';
+import { CoursesComparisonChartComponent } from 'src/app/shared/charts/courses-comparison-chart.component';
 
 @Component({
   selector: 'app-stats',
   standalone: true,
-  imports: [RouterLink, CommonModule],
+  imports: [RouterLink, CommonModule, CoursesComparisonChartComponent],
   template: `
     <div class="min-h-screen bg-hyrox-black">
       <nav class="bg-hyrox-gray-900 border-b border-hyrox-gray-700">
@@ -222,6 +223,18 @@ import { StatsOverview, ProgressionData, StationStats, RoxzoneStats } from 'src/
             }
             }
           </div>
+        </div>
+        }
+
+        <!-- Graphique de comparaison des courses -->
+        @if (progression().length > 1) {
+        <div class="card mb-8">
+          <h2 class="text-xl font-bold text-white mb-2">Comparaison des courses</h2>
+          <p class="text-sm text-hyrox-gray-400 mb-6">
+            Temps total par course — la barre
+            <span class="inline-block w-3 h-3 rounded-sm bg-green-500 align-middle mx-1"></span>verte correspond à votre meilleur temps.
+          </p>
+          <app-courses-comparison-chart [courses]="progression()"></app-courses-comparison-chart>
         </div>
         }
 
