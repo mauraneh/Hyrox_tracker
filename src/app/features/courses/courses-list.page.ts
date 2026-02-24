@@ -4,6 +4,7 @@ import { RouterLink } from '@angular/router';
 import { AuthService } from 'src/app/core/auth/auth.service';
 import { environment } from 'src/environments/environment';
 import { Course } from 'src/app/core/types/interfaces';
+import { CoursesTimeAreaChartComponent, type TimePoint } from 'src/app/shared/charts/courses-time-area-chart.component';
 
 type SortOrder = 'date-desc' | 'date-asc' | 'time-asc' | 'time-desc' | 'city-asc' | 'category-asc';
 
@@ -29,7 +30,7 @@ function compareCourses(a: Course, b: Course, order: SortOrder): number {
 @Component({
   selector: 'app-courses-list',
   standalone: true,
-  imports: [RouterLink],
+  imports: [RouterLink, CoursesTimeAreaChartComponent],
   templateUrl: './courses-list.page.html',
   styleUrl: './courses-list.page.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -75,6 +76,17 @@ export class CoursesListPage implements OnInit, OnDestroy {
     });
     result = [...result].sort((a, b) => compareCourses(a, b, order));
     return result;
+  });
+
+  /**
+   * Points pour le graphique: x = date (ms), y = totalTime (secondes)
+   * Trié en ordre chronologique pour une courbe lisible.
+   */
+  timeChartPoints = computed<TimePoint[]>(() => {
+    const courses = this.filteredCourses();
+    return [...courses]
+      .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
+      .map((c) => ({ x: new Date(c.date).getTime(), y: c.totalTime }));
   });
 
   ngOnInit(): void {
