@@ -233,8 +233,8 @@ import { StationsComparisonChartComponent } from 'src/app/shared/charts/stations
           <p class="text-sm text-hyrox-gray-400 mb-6">
             Temps par station —
             <span class="inline-block w-3 h-3 rounded-sm bg-green-500 align-middle mx-1"></span>Meilleur ·
-            <span class="inline-block w-3 h-3 rounded-sm bg-hyrox-yellow align-middle mx-1"></span>Moyenne ·
-            <span class="inline-block w-3 h-3 rounded-sm bg-blue-500 align-middle mx-1"></span>Dernier
+            <span class="inline-block w-3 h-3 rounded-sm bg-white align-middle mx-1"></span>Moyenne ·
+            <span class="inline-block w-3 h-3 rounded-sm bg-hyrox-yellow align-middle mx-1"></span>Dernier
           </p>
           <app-stations-comparison-chart [stats]="stationStats()"></app-stations-comparison-chart>
         </div>

@@ -67,7 +67,7 @@ export class StationsComparisonChartComponent {
 
   readonly #stats = signal<Record<string, StationStats>>({});
 
-  readonly colors = ['#22c55e', '#f6c744', '#3b82f6'];
+  readonly colors = ['#22c55e', '#ffffff', '#f6c744'];
 
   readonly stationKeys = computed(() => Object.keys(this.#stats()));
 
@@ -154,7 +154,7 @@ export class StationsComparisonChartComponent {
     position: 'top',
     horizontalAlign: 'right',
     labels: { colors: '#9ca3af' },
-    markers: { fillColors: this.colors },
+    markers: { fillColors: ['#22c55e', '#ffffff', '#f6c744'] },
   }));
 
   private formatTime(seconds: number): string {
