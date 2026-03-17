@@ -51,6 +51,18 @@ export const routes: Routes = [
       import('./features/settings/settings.page').then((m) => m.SettingsPage),
   },
   {
+    path: 'search',
+    canActivate: [authGuard],
+    loadComponent: () =>
+      import('./features/search/users-search.page').then((m) => m.UsersSearchPage),
+  },
+  {
+    path: 'user/:id',
+    canActivate: [authGuard],
+    loadComponent: () =>
+      import('./features/search/public-user-profile.page').then((m) => m.PublicUserProfilePage),
+  },
+  {
     path: 'training-around',
     redirectTo: '/trainings/training-around',
     pathMatch: 'full',
