@@ -68,11 +68,6 @@ export const routes: Routes = [
     pathMatch: 'full',
   },
   {
-    path: 'easter-egg',
-    loadComponent: () =>
-      import('./features/easter-egg/easter-egg.page').then((m) => m.EasterEggPage),
-  },
-  {
     path: '**',
     redirectTo: '/dashboard',
   },
