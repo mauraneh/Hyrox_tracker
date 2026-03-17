@@ -91,7 +91,7 @@ import { environment } from 'src/environments/environment';
         <!-- Confidentialité -->
         <div class="card mb-8">
           <h2 class="text-xl font-bold text-white mb-4">Confidentialité</h2>
-          <label class="flex items-center justify-between gap-4 cursor-pointer">
+          <div class="flex items-center justify-between gap-4 cursor-pointer">
             <div>
               <p class="text-sm font-semibold text-white">Profil public</p>
               <p class="text-xs text-hyrox-gray-400 mt-1">
@@ -114,7 +114,7 @@ import { environment } from 'src/environments/environment';
                 [class.translate-x-1]="!isPublic()"
               ></span>
             </button>
-          </label>
+          </div>
           @if (privacyError()) {
           <p class="mt-2 text-sm text-red-400">{{ privacyError() }}</p>
           }
