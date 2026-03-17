@@ -26,6 +26,15 @@ import { Goal, User } from 'src/app/core/types/interfaces';
               </nav>
             </div>
             <div class="flex items-center space-x-4">
+              <a
+                routerLink="/search"
+                class="p-2 rounded-lg text-hyrox-gray-400 hover:text-hyrox-yellow hover:bg-hyrox-gray-800 transition-colors"
+                aria-label="Rechercher des utilisateurs"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-4.35-4.35m1.85-5.15a7 7 0 11-14 0 7 7 0 0114 0z" />
+                </svg>
+              </a>
               <!-- Menu utilisateur -->
               <div class="relative user-menu-container">
                 <button

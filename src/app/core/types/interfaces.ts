@@ -7,6 +7,7 @@ export interface User {
   weight?: number | null;
   height?: number | null;
   avatar?: string | null;
+  isPublic?: boolean;
 }
 
 export interface AuthResponse {

@@ -1,4 +1,4 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, computed, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { AuthService } from 'src/app/core/auth/auth.service';
@@ -24,6 +24,15 @@ import { environment } from 'src/environments/environment';
               </nav>
             </div>
             <div class="flex items-center space-x-4">
+              <a
+                routerLink="/search"
+                class="p-2 rounded-lg text-hyrox-gray-400 hover:text-hyrox-yellow hover:bg-hyrox-gray-800 transition-colors"
+                aria-label="Rechercher des utilisateurs"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-4.35-4.35m1.85-5.15a7 7 0 11-14 0 7 7 0 0114 0z" />
+                </svg>
+              </a>
               <!-- Menu utilisateur -->
               <div class="relative user-menu-container">
                 <button
@@ -78,6 +87,38 @@ import { environment } from 'src/environments/environment';
 
       <main class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <h1 class="text-4xl font-black text-hyrox-yellow uppercase tracking-wide mb-8">Paramètres</h1>
+
+        <!-- Confidentialité -->
+        <div class="card mb-8">
+          <h2 class="text-xl font-bold text-white mb-4">Confidentialité</h2>
+          <label class="flex items-center justify-between gap-4 cursor-pointer">
+            <div>
+              <p class="text-sm font-semibold text-white">Profil public</p>
+              <p class="text-xs text-hyrox-gray-400 mt-1">
+                Rendre mon profil visible par tous.
+              </p>
+            </div>
+            <button
+              type="button"
+              role="switch"
+              [attr.aria-checked]="isPublic()"
+              class="relative inline-flex h-6 w-11 flex-shrink-0 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-hyrox-yellow focus:ring-offset-2 focus:ring-offset-hyrox-gray-900"
+              [class.bg-hyrox-yellow]="isPublic()"
+              [class.bg-hyrox-gray-700]="!isPublic()"
+              (click)="toggleIsPublic()"
+              [disabled]="isUpdatingPrivacy()"
+            >
+              <span
+                class="inline-block h-4 w-4 transform rounded-full bg-hyrox-black transition-transform"
+                [class.translate-x-5]="isPublic()"
+                [class.translate-x-1]="!isPublic()"
+              ></span>
+            </button>
+          </label>
+          @if (privacyError()) {
+          <p class="mt-2 text-sm text-red-400">{{ privacyError() }}</p>
+          }
+        </div>
 
         <!-- Zone de danger -->
         <div class="card mb-8 border-red-500">
@@ -148,6 +189,9 @@ export class SettingsPage {
   #http = inject(HttpClient);
 
   currentUser = this.#authService.currentUser;
+  isPublic = computed(() => this.currentUser()?.isPublic ?? false);
+  isUpdatingPrivacy = signal(false);
+  privacyError = signal<string | null>(null);
   showDeleteConfirmation = signal(false);
   showUserMenu = signal(false);
 
@@ -164,6 +208,24 @@ export class SettingsPage {
   }
   isDeletingAccount = signal(false);
   deleteError = signal<string | null>(null);
+
+  toggleIsPublic() {
+    const user = this.currentUser();
+    if (!user) return;
+    const newValue = !this.isPublic();
+    this.isUpdatingPrivacy.set(true);
+    this.privacyError.set(null);
+    this.#http.put<{ success: boolean; data: unknown }>(`${environment.apiUrl}/users/${user.id}`, { isPublic: newValue }).subscribe({
+      next: () => {
+        this.#authService.loadCurrentUser();
+        this.isUpdatingPrivacy.set(false);
+      },
+      error: (err) => {
+        this.privacyError.set(err.error?.message ?? 'Erreur lors de la mise à jour');
+        this.isUpdatingPrivacy.set(false);
+      },
+    });
+  }
 
   confirmDeleteAccount() {
     this.showDeleteConfirmation.set(true);
