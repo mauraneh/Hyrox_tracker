@@ -7,7 +7,11 @@ import { Router } from '@angular/router';
   template: `
     <div
       class="min-h-screen bg-hyrox-black flex flex-col items-center justify-center px-4 cursor-pointer relative overflow-hidden"
+      role="button"
+      tabindex="0"
       (click)="goBack()"
+      (keydown.enter)="goBack()"
+      (keydown.space)="goBack()"
     >
       <!-- Confettis décoratifs -->
       <div class="absolute inset-0 pointer-events-none">
