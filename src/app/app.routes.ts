@@ -68,6 +68,18 @@ export const routes: Routes = [
     pathMatch: 'full',
   },
   {
+    path: 'messages',
+    canActivate: [authGuard],
+    loadComponent: () =>
+      import('./features/messages/messages.page').then((m) => m.MessagesPage),
+  },
+  {
+    path: 'messages/:id',
+    canActivate: [authGuard],
+    loadComponent: () =>
+      import('./features/messages/chat.page').then((m) => m.ChatPage),
+  },
+  {
     path: 'easter-egg',
     loadComponent: () =>
       import('./features/easter-egg/easter-egg.page').then((m) => m.EasterEggPage),

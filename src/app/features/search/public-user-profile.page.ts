@@ -1,8 +1,10 @@
 import { CommonModule } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
 import { Component, computed, inject, signal } from '@angular/core';
-import { ActivatedRoute, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { environment } from 'src/environments/environment';
+import { FollowService, FollowStatus } from 'src/app/core/follows/follow.service';
+import { AuthService } from 'src/app/core/auth/auth.service';
 
 type RecentCourse = {
   id: string;
@@ -50,16 +52,10 @@ type PublicProfileResponse = {
               </nav>
             </div>
             <div class="flex items-center space-x-4">
-              @if (displayName()) {
-              <span class="hidden sm:inline text-sm font-semibold text-hyrox-yellow truncate max-w-[220px]">
-                {{ displayName() }}
-              </span>
-              }
               <a
                 routerLink="/search"
                 class="p-2 rounded-lg text-hyrox-gray-400 hover:text-hyrox-yellow hover:bg-hyrox-gray-800 transition-colors"
                 aria-label="Retour à la recherche"
-                title="Retour à la recherche"
               >
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
@@ -98,23 +94,70 @@ type PublicProfileResponse = {
         </div>
         } @else {
         <div class="card mb-8">
-          <div class="flex items-center gap-4">
-            <div class="h-16 w-16 rounded-full overflow-hidden bg-hyrox-gray-800 flex items-center justify-center">
-              @if (profile()!.user.avatar) {
-              <img [src]="profile()!.user.avatar!" [alt]="displayName()" class="h-full w-full object-cover" />
-              } @else {
-              <span class="text-hyrox-yellow font-black text-xl">{{ initials() }}</span>
+          <div class="flex items-center justify-between gap-4 flex-wrap">
+            <div class="flex items-center gap-4">
+              <div class="h-16 w-16 rounded-full overflow-hidden bg-hyrox-gray-800 flex items-center justify-center flex-shrink-0">
+                @if (profile()!.user.avatar) {
+                <img [src]="profile()!.user.avatar!" [alt]="displayName()" class="h-full w-full object-cover" />
+                } @else {
+                <span class="text-hyrox-yellow font-black text-xl">{{ initials() }}</span>
+                }
+              </div>
+              <div class="min-w-0">
+                <h1 class="text-3xl font-black text-hyrox-yellow uppercase tracking-wide truncate">
+                  {{ displayName() }}
+                </h1>
+                @if (profile()!.user.category) {
+                <p class="text-hyrox-gray-400">{{ profile()!.user.category }}</p>
+                }
+                <p class="text-xs text-hyrox-gray-500 mt-1">
+                  Profil public
+                  @if (followStatus()?.isMutual) {
+                  · <span class="text-hyrox-yellow">Abonnement mutuel</span>
+                  }
+                </p>
+              </div>
+            </div>
+
+            <!-- Follow / Message actions -->
+            @if (showActions()) {
+            <div class="flex items-center gap-3 flex-wrap">
+              @if (followStatus()?.isMutual) {
+              <button
+                (click)="openChat()"
+                class="inline-flex items-center gap-2 px-4 py-2 bg-hyrox-yellow text-black font-bold text-sm rounded-lg hover:bg-yellow-400 transition-colors"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-3 3v-3z" />
+                </svg>
+                Message
+              </button>
+              }
+              @if (followStatus() !== null) {
+              <button
+                (click)="toggleFollow()"
+                [disabled]="followLoading()"
+                [class]="followStatus()!.isFollowing
+                  ? 'inline-flex items-center gap-2 px-4 py-2 bg-hyrox-gray-700 text-white font-bold text-sm rounded-lg hover:bg-red-900 hover:text-red-300 transition-colors disabled:opacity-50'
+                  : 'inline-flex items-center gap-2 px-4 py-2 border border-hyrox-yellow text-hyrox-yellow font-bold text-sm rounded-lg hover:bg-hyrox-yellow hover:text-black transition-colors disabled:opacity-50'"
+              >
+                @if (followLoading()) {
+                <svg class="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                  <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+                </svg>
+                } @else if (followStatus()!.isFollowing) {
+                Abonné ✓
+                } @else {
+                + Suivre
+                }
+              </button>
+              @if (followStatus()!.isFollowedBy && !followStatus()!.isFollowing) {
+              <span class="text-xs text-hyrox-gray-400">Vous suit</span>
+              }
               }
             </div>
-            <div class="min-w-0">
-              <h1 class="text-3xl font-black text-hyrox-yellow uppercase tracking-wide truncate">
-                {{ displayName() }}
-              </h1>
-              @if (profile()!.user.category) {
-              <p class="text-hyrox-gray-400">{{ profile()!.user.category }}</p>
-              }
-              <p class="text-xs text-hyrox-gray-500 mt-1">Profil public</p>
-            </div>
+            }
           </div>
         </div>
 
@@ -177,13 +220,24 @@ type PublicProfileResponse = {
 export class PublicUserProfilePage {
   #http = inject(HttpClient);
   #route = inject(ActivatedRoute);
+  #router = inject(Router);
+  #followService = inject(FollowService);
+  #authService = inject(AuthService);
 
   isLoading = signal(true);
   error = signal<string | null>(null);
   profile = signal<PublicProfileResponse['data'] | null>(null);
+  followStatus = signal<FollowStatus | null>(null);
+  followLoading = signal(false);
+
+  // Show actions only when viewing someone else's profile
+  showActions = computed(() => {
+    const currentUser = this.#authService.currentUser();
+    const profileUser = this.profile()?.user;
+    return currentUser && profileUser && currentUser.id !== profileUser.id;
+  });
 
   constructor() {
-    // Recharge le profil à chaque changement de :id
     this.#route.paramMap.subscribe((params) => {
       const id = params.get('id');
       if (!id) {
@@ -193,6 +247,7 @@ export class PublicUserProfilePage {
         return;
       }
       this.loadProfile(id);
+      this.loadFollowStatus(id);
     });
   }
 
@@ -211,6 +266,42 @@ export class PublicUserProfilePage {
         this.isLoading.set(false);
       },
     });
+  }
+
+  private loadFollowStatus(id: string) {
+    const currentUser = this.#authService.currentUser();
+    if (!currentUser || currentUser.id === id) return;
+
+    this.#followService.getStatus(id).subscribe({
+      next: (res) => this.followStatus.set(res.data),
+      error: () => this.followStatus.set(null),
+    });
+  }
+
+  toggleFollow() {
+    const status = this.followStatus();
+    const profileId = this.profile()?.user.id;
+    if (!status || !profileId || this.followLoading()) return;
+
+    this.followLoading.set(true);
+    const obs = status.isFollowing
+      ? this.#followService.unfollow(profileId)
+      : this.#followService.follow(profileId);
+
+    obs.subscribe({
+      next: () => {
+        this.loadFollowStatus(profileId);
+        this.followLoading.set(false);
+      },
+      error: () => this.followLoading.set(false),
+    });
+  }
+
+  openChat() {
+    const profileId = this.profile()?.user.id;
+    if (profileId) {
+      this.#router.navigate(['/messages', profileId]);
+    }
   }
 
   displayName = computed(() => {
@@ -242,4 +333,3 @@ export class PublicUserProfilePage {
     });
   }
 }
-
