@@ -13,6 +13,9 @@ type PublicUser = {
   category: string | null;
 };
 
+const MIN_QUERY_LENGTH = 3;
+const MAX_QUERY_LENGTH = 30;
+
 @Component({
   selector: 'app-users-search',
   standalone: true,
@@ -94,15 +97,23 @@ type PublicUser = {
               type="text"
               [value]="query()"
               (input)="onQueryChange($any($event.target).value)"
+              [attr.maxlength]="maxQueryLength"
               placeholder="Rechercher un utilisateur (prénom ou nom)"
             />
-            <button type="button" class="btn-primary" (click)="searchNow()" [disabled]="isLoading()">
+            <button type="button" class="btn-primary" (click)="searchNow()" [disabled]="isLoading() || !canSearch()">
               Rechercher
             </button>
           </div>
-          <p class="mt-2 text-xs text-hyrox-gray-400">
-            Seuls les profils publics apparaissent dans la recherche.
-          </p>
+          <div class="mt-2 flex items-center justify-between">
+            <p class="text-xs text-hyrox-gray-400">
+              @if (query().trim().length > 0 && query().trim().length < minQueryLength) {
+                Saisissez au moins {{ minQueryLength }} caractères pour lancer la recherche.
+              } @else {
+                Seuls les profils publics apparaissent dans la recherche.
+              }
+            </p>
+            <span class="text-xs text-hyrox-gray-500">{{ query().length }}/{{ maxQueryLength }}</span>
+          </div>
         </div>
 
         @if (isLoading()) {
@@ -172,6 +183,9 @@ export class UsersSearchPage implements OnDestroy {
   isLoading = signal(false);
   error = signal<string | null>(null);
   skeletons = computed(() => Array.from({ length: 6 }, (_, i) => i));
+  readonly minQueryLength = MIN_QUERY_LENGTH;
+  readonly maxQueryLength = MAX_QUERY_LENGTH;
+  canSearch = computed(() => this.query().trim().length >= MIN_QUERY_LENGTH);
 
   #debounceTimer: ReturnType<typeof setTimeout> | null = null;
 
@@ -185,8 +199,6 @@ export class UsersSearchPage implements OnDestroy {
       }
     });
 
-    // charge une première liste (profils publics)
-    this.searchNow();
   }
 
   ngOnDestroy() {
@@ -194,18 +206,32 @@ export class UsersSearchPage implements OnDestroy {
   }
 
   onQueryChange(value: string) {
-    this.query.set(value);
+    const sanitized = value.slice(0, MAX_QUERY_LENGTH);
+    this.query.set(sanitized);
     if (this.#debounceTimer) clearTimeout(this.#debounceTimer);
-    this.#debounceTimer = setTimeout(() => this.searchNow(), 300);
+    const trimmedLength = sanitized.trim().length;
+    if (trimmedLength >= MIN_QUERY_LENGTH) {
+      this.#debounceTimer = setTimeout(() => this.searchNow(), 300);
+    } else {
+      this.isLoading.set(false);
+      this.error.set(null);
+      this.results.set([]);
+    }
   }
 
   searchNow() {
+    const q = this.query().trim();
+    if (q.length < MIN_QUERY_LENGTH) {
+      this.isLoading.set(false);
+      this.error.set(null);
+      this.results.set([]);
+      return;
+    }
+
     this.isLoading.set(true);
     this.error.set(null);
 
-    let params = new HttpParams();
-    const q = this.query().trim();
-    if (q.length > 0) params = params.set('q', q);
+    const params = new HttpParams().set('q', q);
 
     this.#http
       .get<{ success: boolean; data: PublicUser[] }>(`${environment.apiUrl}/users/search`, { params })

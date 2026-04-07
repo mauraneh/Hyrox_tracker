@@ -1,44 +1,72 @@
 # Hyrox Tracker — Frontend
 
-Application web de suivi des performances Hyrox (courses, entraînements, objectifs, statistiques). Ce dépôt contient **uniquement le frontend** Angular. L’API backend est dans un autre dépôt. **Tout tourne en local** : frontend (port 4200) et backend (port 3000) sur la même machine.
+Application web Angular pour suivre les performances Hyrox : courses, entraînements, statistiques, objectifs et profils.
 
-## Prérequis
+Ce dépôt contient **uniquement le frontend**. Le backend (API NestJS + base de données) est dans un dépôt séparé.
 
-- **Node.js** 20+
-- **npm** 10+
+---
 
-Aucune base de données ni service backend dans ce projet.
+## 1) Stack technique
 
-## Installation
+- Angular (standalone components)
+- TypeScript
+- Tailwind CSS
+- RxJS / HttpClient
+- ApexCharts (`ng-apexcharts`) pour les graphiques
+- Jasmine / Karma (tests)
+- ESLint (lint)
+
+---
+
+## 2) Prérequis
+
+- Node.js 20+
+- npm 10+
+- Backend du projet lancé localement (ou environnement compatible)
+
+---
+
+## 3) Installation
 
 ```bash
 npm ci
 ```
 
-## Lancer l’application
+---
+
+## 4) Lancer l’application
 
 ```bash
 npm start
 ```
 
-L’app est disponible sur **http://localhost:4200**.
+Frontend disponible sur :
+- [http://localhost:4200](http://localhost:4200)
 
-## Scripts disponibles
+Le frontend attend une API sur :
+- `http://localhost:3000/api`
+
+---
+
+## 5) Scripts utiles
 
 | Commande | Description |
-|----------|-------------|
-| `npm start` | Serveur de dev (port 4200, hot reload) |
-| `npm run build` | Build de production dans `dist/frontend` |
-| `npm run watch` | Build en mode watch (development) |
-| `npm test` | Tests unitaires (Karma/Jasmine) |
-| `npm run test:coverage` | Tests avec rapport de couverture |
-| `npm run lint` | ESLint sur `src/**/*.ts` et `src/**/*.html` |
+|---|---|
+| `npm start` | Lance le serveur de dev Angular |
+| `npm run build` | Build de production |
+| `npm run watch` | Build en mode watch |
+| `npm test` | Lance les tests unitaires |
+| `npm run test:coverage` | Lance les tests avec couverture |
+| `npm run lint` | Analyse lint TypeScript + templates Angular |
 
-## Configuration
+---
 
-### API backend
+## 6) Configuration environnement
 
-L’URL de l’API est définie dans `src/environments/environment.ts` :
+Fichier principal :
+- `src/environments/environment.ts`
+
+Exemple :
 
 ```ts
 export const environment = {
@@ -47,91 +75,138 @@ export const environment = {
 };
 ```
 
-Tout est en **local** : l’API est sur `http://localhost:3000/api`. Démarrer le backend (autre dépôt) sur la même machine pour que le frontend s’y connecte. La doc **Swagger** est disponible à `http://localhost:3000/api/docs`.
+Le backend expose généralement Swagger sur :
+- `http://localhost:3000/api/docs`
 
-## Mocks en secours (backup)
+---
 
-En cas d’indisponibilité de l’API (maintenance, panne, travail offline), l’app peut utiliser des **mocks** (réponses JSON locales) alignées sur le contrat d’API (Swagger).
+## 7) Fonctionnalités principales
 
-### Mise en place (déjà en place)
+### Authentification
+- Connexion / inscription
+- Gestion token via service et intercepteur auth
+- Protection des routes via `authGuard`
 
-- **Emplacement des mocks** : `public/mocks/` (auth, stats, goals, users, courses). Chaque fichier correspond à une réponse API (ex. `auth-login.json`, `stats-overview.json`).
-- **Activation** : dans `src/environments/environment.ts`, passer `useMocks` à `true` :
-  ```ts
-  useMocks: true,
-  ```
-- **Fonctionnement** : l’intercepteur `src/app/core/api/mock.interceptor.ts` s’exécute avant l’appel réseau ; si `useMocks` est vrai, il renvoie le JSON du fichier mock correspondant (méthode + chemin API). Les requêtes vers `mocks/` (chargement des JSON) ne sont pas interceptées.
-- **Contrat** : les types dans `src/app/core/types/interfaces.ts` et la doc Swagger du backend restent la référence ; adapter les JSON dans `public/mocks/` si l’API change.
+### Dashboard
+- Vue synthèse utilisateur
+- Accès rapide aux sections principales
 
-## Docker (optionnel)
+### Courses
+- Liste des courses avec filtres/tri
+- Ajout / édition / suppression
+- Détail d’une course avec segments
+- Import des résultats
+- Export CSV
 
-Le frontend peut être lancé dans un conteneur :
+### Trainings
+- Liste, détail, création, modification, suppression
+- Filtres (date, type, niveau)
+- Confirmation de suppression
 
-```bash
-docker compose up
-```
+### Statistiques
+- KPIs globaux (meilleur, moyenne, dernier, etc.)
+- Stats par station
+- Graphiques comparatifs
 
-Cela démarre uniquement le service **hyrox-frontend** (port 4200). Aucun backend ni base de données dans ce `docker-compose.yml`.
+### Recherche utilisateurs
+- Accès via l’icône loupe
+- Recherche profils publics
+- Validation UX : minimum 3 caractères, maximum 30 caractères
 
-Pour arrêter et supprimer les conteneurs (et d’éventuels orphelins) :
+### Easter Egg
+- Route dédiée `/easter-egg`
+- Déclenchement via interaction clavier/souris (selon implémentation de la branche concernée)
 
-```bash
-docker compose down --remove-orphans
-```
+---
 
-## Structure du projet
+## 8) Structure du projet
 
-```
+```text
 src/
 ├── app/
-│   ├── core/                 # Auth, intercepteur HTTP, types partagés
-│   │   ├── auth/
-│   │   └── types/
-│   ├── features/             # Pages par domaine (auth, dashboard, courses, etc.)
+│   ├── core/
+│   │   ├── auth/            # Guard, interceptor, auth service
+│   │   └── types/           # Interfaces / enums partagés
+│   ├── features/
 │   │   ├── auth/
 │   │   ├── courses/
 │   │   ├── dashboard/
 │   │   ├── profile/
+│   │   ├── search/
 │   │   ├── settings/
 │   │   ├── stats/
 │   │   └── trainings/
+│   ├── shared/
+│   │   └── charts/          # Composants de graphiques réutilisables
+│   ├── app.component.ts
 │   ├── app.config.ts
-│   ├── app.routes.ts
-│   └── app.component.ts
-├── environments/             # environment.ts (apiUrl, etc.)
+│   └── app.routes.ts
+├── environments/
 ├── index.html
 ├── main.ts
 └── styles.css
 ```
 
-- **Composants** : standalone, préfixe `app`, style avec **Tailwind**.  
-- **Routing** : lazy loading des features ; `authGuard` sur les routes protégées.  
-- **API** : tous les appels passent par `environment.apiUrl` et l’intercepteur d’auth (token).
+---
 
-## Tests
+## 9) Qualité et CI
 
-```bash
-npm test
-```
-
-Ou avec couverture :
-
-```bash
-npm run test:coverage
-```
-
-## Lint
+Avant toute PR :
 
 ```bash
 npm run lint
+npm test
 ```
 
-## Handover à une autre équipe
+Recommandé aussi :
 
-- Le **backend** est dans un dépôt séparé ; ce repo ne contient que le frontend.  
-- **Tout est en local** : frontend (4200) et backend (3000) sur la même machine ; `apiUrl` pointe déjà vers `localhost`.  
-- Les mocks (voir section ci‑dessus) servent de backup si l’API est indisponible : activer `useMocks: true` dans `environment.ts`. La doc Swagger du backend est la référence pour le contrat d’API ; les JSON sont dans `public/mocks/`.
+```bash
+npm run build
+```
 
-## Licence
+---
 
-Voir le fichier `LICENSE` à la racine du projet.
+## 10) Docker (optionnel)
+
+Lancer avec Docker Compose :
+
+```bash
+docker compose up
+```
+
+Arrêter et nettoyer :
+
+```bash
+docker compose down --remove-orphans
+```
+
+---
+
+## 11) Workflow Git recommandé
+
+1. Créer une branche feature depuis `main`
+2. Développer et committer sur la branche feature
+3. Ouvrir une Pull Request vers `main`
+4. Résoudre les conflits éventuels sur la branche feature
+5. Merger uniquement après checks CI au vert
+
+---
+
+## 12) Dépannage rapide
+
+### `Cannot GET /` sur localhost:4200
+- Vérifier que le frontend tourne réellement (`npm start` ou conteneur en cours)
+- Vérifier le port exposé et l’URL utilisée
+
+### Erreurs lint Angular template
+- Les éléments cliquables non natifs doivent être focusables et gérer le clavier (`tabindex`, `keydown.enter`, etc.)
+
+### Conflit d’image en PR
+- Souvent dû à un fichier binaire ajouté/supprimé différemment entre branches
+- Résoudre explicitement la version à conserver puis commit de merge
+
+---
+
+## 13) Licence
+
+Voir `LICENSE`.
