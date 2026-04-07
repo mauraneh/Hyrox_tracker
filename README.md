@@ -32,7 +32,10 @@ L’app est disponible sur **http://localhost:4200**.
 | `npm run watch` | Build en mode watch (development) |
 | `npm test` | Tests unitaires (Karma/Jasmine) |
 | `npm run test:coverage` | Tests avec rapport de couverture |
-| `npm run lint` | ESLint sur `src/**/*.ts` et `src/**/*.html` |
+| `npm run lint` | ESLint strict sur `src/**/*.ts` et `src/**/*.html` (aucun warning accepté) |
+| `npm run lint:fix` | ESLint avec autofix (`--fix`) |
+| `npm run format` | Formatage du code (Prettier) sur TypeScript/HTML/CSS/SCSS |
+| `npm run format:check` | Vérification du formatage (sans modifier les fichiers) |
 
 ## Configuration
 
@@ -133,5 +136,36 @@ npm run lint
 - Les mocks (voir section ci‑dessus) servent de backup si l’API est indisponible : activer `useMocks: true` dans `environment.ts`. La doc Swagger du backend est la référence pour le contrat d’API ; les JSON sont dans `public/mocks/`.
 
 ## Licence
+## Qualité du code et hooks Git
+
+### Husky et lint-staged
+
+Le projet utilise **Husky** pour brancher des hooks Git côté frontend, et **lint-staged** pour ne traiter que les fichiers modifiés.
+
+- Pour initialiser Husky après un `npm ci` :
+
+  ```bash
+  npm run prepare
+  ```
+
+- Hook **pre-commit** :
+  - Lance `lint-staged`, qui applique :
+    - ESLint strict (`--max-warnings=0`) et Prettier sur les fichiers TypeScript.
+    - Prettier sur les fichiers HTML / CSS / SCSS.
+
+- Hook **pre-push** :
+  - Exécute, dans cet ordre :
+    - `npm run lint`
+    - `npm test`
+    - `npm run build`
+
+Ces hooks garantissent qu’aucun commit ni push ne passe avec un lint cassé, des tests en échec ou un build invalide.
+
+### Scripts qualité principaux
+
+- `npm run lint` : ESLint strict (aucun warning accepté).
+- `npm run lint:fix` : ESLint avec correction automatique.
+- `npm run format` : formatage du code via Prettier.
+- `npm run format:check` : vérifie que le code est correctement formaté sans le modifier.
 
 Voir le fichier `LICENSE` à la racine du projet.
