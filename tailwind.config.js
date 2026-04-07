@@ -8,6 +8,15 @@ module.exports = {
         sans: ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
         display: ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
       },
+      keyframes: {
+        'slide-up': {
+          '0%': { opacity: '0', transform: 'translateX(-50%) translateY(16px)' },
+          '100%': { opacity: '1', transform: 'translateX(-50%) translateY(0)' },
+        },
+      },
+      animation: {
+        'slide-up': 'slide-up 0.25s ease-out',
+      },
       colors: {
         border: '#2a2a2a',
         primary: {

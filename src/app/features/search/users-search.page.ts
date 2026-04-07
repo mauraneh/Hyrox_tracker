@@ -2,8 +2,8 @@ import { CommonModule } from '@angular/common';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Component, OnDestroy, computed, inject, signal } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
-import { AuthService } from 'src/app/core/auth/auth.service';
 import { environment } from 'src/environments/environment';
+import { NavbarComponent } from 'src/app/shared/navbar/navbar.component';
 
 type PublicUser = {
   id: string;
@@ -19,73 +19,10 @@ const MAX_QUERY_LENGTH = 30;
 @Component({
   selector: 'app-users-search',
   standalone: true,
-  imports: [CommonModule, RouterLink],
+  imports: [CommonModule, RouterLink, NavbarComponent],
   template: `
     <div class="min-h-screen bg-hyrox-black">
-      <nav class="bg-hyrox-gray-900 border-b border-hyrox-gray-800 shadow-lg">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div class="flex justify-between h-20">
-            <div class="flex items-center space-x-8">
-              <h1 class="hyrox-title">Hyrox Tracker</h1>
-              <nav class="hidden md:flex space-x-6">
-                <a
-                  routerLink="/dashboard"
-                  class="text-hyrox-gray-400 hover:text-hyrox-yellow font-semibold text-sm uppercase tracking-wide transition-colors"
-                  >Dashboard</a
-                >
-                <a
-                  routerLink="/courses"
-                  class="text-hyrox-gray-400 hover:text-hyrox-yellow font-semibold text-sm uppercase tracking-wide transition-colors"
-                  >Courses</a
-                >
-                <a
-                  routerLink="/trainings"
-                  class="text-hyrox-gray-400 hover:text-hyrox-yellow font-semibold text-sm uppercase tracking-wide transition-colors"
-                  >Entraînements</a
-                >
-                <a
-                  routerLink="/stats"
-                  class="text-hyrox-gray-400 hover:text-hyrox-yellow font-semibold text-sm uppercase tracking-wide transition-colors"
-                  >Statistiques</a
-                >
-                <a
-                  routerLink="/search"
-                  class="text-hyrox-yellow font-bold text-sm uppercase tracking-wide hover:text-white transition-colors"
-                  >Recherche</a
-                >
-              </nav>
-            </div>
-            <div class="flex items-center space-x-4">
-              <div class="relative user-menu-container">
-                <button
-                  (click)="toggleUserMenu($event)"
-                  (keydown.enter)="toggleUserMenu($event)"
-                  class="flex items-center space-x-2 text-sm text-white hover:text-hyrox-yellow cursor-pointer font-semibold transition-colors bg-transparent border-none p-2 rounded-lg hover:bg-hyrox-gray-800"
-                >
-                  <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                  </svg>
-                  <span>{{ currentUser()?.firstName }} {{ currentUser()?.lastName }}</span>
-                  <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-                  </svg>
-                </button>
-
-                @if (showUserMenu()) {
-                <div class="absolute right-0 mt-2 w-48 bg-hyrox-gray-900 rounded-lg shadow-xl border-2 border-hyrox-yellow py-1 z-50">
-                  <a routerLink="/profile" (click)="closeUserMenu()" class="block px-4 py-2 text-sm text-white hover:bg-hyrox-gray-800 hover:text-hyrox-yellow transition-colors">Profil</a>
-                  <a routerLink="/settings" (click)="closeUserMenu()" class="block px-4 py-2 text-sm text-white hover:bg-hyrox-gray-800 hover:text-hyrox-yellow transition-colors">Paramètres</a>
-                  <div class="border-t border-hyrox-gray-800 my-1"></div>
-                  <button (click)="logout(); closeUserMenu()" class="w-full text-left block px-4 py-2 text-sm text-red-400 hover:bg-red-900/20 hover:text-red-300 transition-colors">
-                    Déconnexion
-                  </button>
-                </div>
-                }
-              </div>
-            </div>
-          </div>
-        </div>
-      </nav>
+      <app-navbar activePage="search" />
 
       <main class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <h1 class="text-4xl font-black text-hyrox-yellow mb-6 uppercase tracking-wide">Recherche</h1>
@@ -171,12 +108,8 @@ const MAX_QUERY_LENGTH = 30;
   `,
 })
 export class UsersSearchPage implements OnDestroy {
-  #authService = inject(AuthService);
   #http = inject(HttpClient);
   #router = inject(Router);
-
-  currentUser = this.#authService.currentUser;
-  showUserMenu = signal(false);
 
   query = signal('');
   results = signal<PublicUser[]>([]);
@@ -188,18 +121,6 @@ export class UsersSearchPage implements OnDestroy {
   canSearch = computed(() => this.query().trim().length >= MIN_QUERY_LENGTH);
 
   #debounceTimer: ReturnType<typeof setTimeout> | null = null;
-
-  constructor() {
-    document.addEventListener('click', (event) => {
-      if (this.showUserMenu()) {
-        const target = event.target as HTMLElement;
-        if (!target.closest('.user-menu-container')) {
-          this.closeUserMenu();
-        }
-      }
-    });
-
-  }
 
   ngOnDestroy() {
     if (this.#debounceTimer) clearTimeout(this.#debounceTimer);
@@ -258,22 +179,8 @@ export class UsersSearchPage implements OnDestroy {
     return `${a}${b}`.toUpperCase() || '?';
   }
 
-  toggleUserMenu(event?: Event) {
-    if (event) event.stopPropagation();
-    this.showUserMenu.set(!this.showUserMenu());
-  }
-
-  closeUserMenu() {
-    this.showUserMenu.set(false);
-  }
-
-  logout() {
-    this.#authService.logout();
-  }
-
   goToUser(id: string | undefined | null) {
     if (!id) return;
     this.#router.navigate(['/user', id]);
   }
 }
-

@@ -64,16 +64,30 @@ type PartnerInfo = { id: string; firstName: string; lastName: string; avatar: st
           </div>
           } @else {
           @for (msg of messages(); track msg.id) {
-          <div [class]="msg.senderId === currentUserId() ? 'flex justify-end' : 'flex justify-start'">
-            <div [class]="msg.senderId === currentUserId()
-              ? 'max-w-xs lg:max-w-md px-4 py-2 rounded-2xl rounded-tr-sm bg-hyrox-yellow text-black'
-              : 'max-w-xs lg:max-w-md px-4 py-2 rounded-2xl rounded-tl-sm bg-hyrox-gray-800 text-white'">
-              <p class="text-sm break-words">{{ msg.content }}</p>
-              <p [class]="msg.senderId === currentUserId() ? 'text-xs mt-1 text-black/60 text-right' : 'text-xs mt-1 text-hyrox-gray-500 text-right'">
-                {{ formatTime(msg.createdAt) }}
-              </p>
+            @if (msg.senderId === currentUserId()) {
+            <!-- Mes messages : droite, jaune -->
+            <div class="flex justify-end items-end gap-2">
+              <div class="max-w-xs lg:max-w-md px-4 py-2.5 rounded-2xl rounded-br-none bg-hyrox-yellow text-black shadow-md">
+                <p class="text-sm break-words leading-relaxed">{{ msg.content }}</p>
+                <p class="text-xs mt-1 text-black/50 text-right">{{ formatTime(msg.createdAt) }}</p>
+              </div>
             </div>
-          </div>
+            } @else {
+            <!-- Messages du partenaire : gauche, gris -->
+            <div class="flex justify-start items-end gap-2">
+              <div class="h-7 w-7 rounded-full overflow-hidden bg-hyrox-gray-700 flex items-center justify-center flex-shrink-0 mb-0.5">
+                @if (partner()?.avatar) {
+                <img [src]="partner()!.avatar!" class="h-full w-full object-cover" alt="" />
+                } @else {
+                <span class="text-hyrox-yellow font-black text-xs">{{ partnerInitials() }}</span>
+                }
+              </div>
+              <div class="max-w-xs lg:max-w-md px-4 py-2.5 rounded-2xl rounded-bl-none bg-hyrox-gray-800 text-white shadow-md">
+                <p class="text-sm break-words leading-relaxed">{{ msg.content }}</p>
+                <p class="text-xs mt-1 text-hyrox-gray-500 text-right">{{ formatTime(msg.createdAt) }}</p>
+              </div>
+            </div>
+            }
           }
           }
         </div>
@@ -183,6 +197,11 @@ export class ChatPage implements OnInit, OnDestroy, AfterViewChecked {
         this.messages.set(res.data);
         this.isLoading.set(false);
         this.#shouldScrollToBottom = true;
+        // Messages marqués comme lus côté serveur → rafraîchir le compteur
+        this.#messagesService.getUnreadCount().subscribe({
+          next: (r) => this.#messagesService.unreadCount.set(r.data.count),
+          error: () => {},
+        });
       },
       error: () => this.isLoading.set(false),
     });

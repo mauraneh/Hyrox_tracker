@@ -46,4 +46,8 @@ export class FollowService {
   getMutual(): Observable<{ success: boolean; data: Omit<FollowUser, 'followedAt'>[] }> {
     return this.#http.get<{ success: boolean; data: Omit<FollowUser, 'followedAt'>[] }>(`${this.#base}/me/mutual`);
   }
+
+  getRecentFollowers(): Observable<{ success: boolean; data: (Omit<FollowUser, 'followedAt'> & { followedAt: string })[] }> {
+    return this.#http.get<{ success: boolean; data: (Omit<FollowUser, 'followedAt'> & { followedAt: string })[] }>(`${this.#base}/me/recent-followers`);
+  }
 }

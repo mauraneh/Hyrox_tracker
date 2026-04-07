@@ -5,6 +5,7 @@ import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { environment } from 'src/environments/environment';
 import { FollowService, FollowStatus } from 'src/app/core/follows/follow.service';
 import { AuthService } from 'src/app/core/auth/auth.service';
+import { NavbarComponent } from 'src/app/shared/navbar/navbar.component';
 
 type RecentCourse = {
   id: string;
@@ -38,33 +39,10 @@ type PublicProfileResponse = {
 @Component({
   selector: 'app-public-user-profile',
   standalone: true,
-  imports: [CommonModule, RouterLink],
+  imports: [CommonModule, RouterLink, NavbarComponent],
   template: `
     <div class="min-h-screen bg-hyrox-black">
-      <nav class="bg-hyrox-gray-900 border-b border-hyrox-gray-800 shadow-lg">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div class="flex justify-between h-20">
-            <div class="flex items-center space-x-8 min-w-0">
-              <h1 class="hyrox-title">Hyrox Tracker</h1>
-              <nav class="hidden md:flex space-x-6">
-                <a routerLink="/dashboard" class="text-hyrox-gray-400 hover:text-hyrox-yellow font-semibold text-sm uppercase tracking-wide transition-colors">Dashboard</a>
-                <a routerLink="/search" class="text-hyrox-yellow font-bold text-sm uppercase tracking-wide hover:text-white transition-colors">Recherche</a>
-              </nav>
-            </div>
-            <div class="flex items-center space-x-4">
-              <a
-                routerLink="/search"
-                class="p-2 rounded-lg text-hyrox-gray-400 hover:text-hyrox-yellow hover:bg-hyrox-gray-800 transition-colors"
-                aria-label="Retour à la recherche"
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
-                </svg>
-              </a>
-            </div>
-          </div>
-        </div>
-      </nav>
+      <app-navbar activePage="other" />
 
       <main class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <a routerLink="/search" class="inline-flex items-center gap-2 text-hyrox-yellow hover:text-white font-semibold mb-8 transition-colors">
@@ -121,6 +99,15 @@ type PublicProfileResponse = {
 
             <!-- Follow / Message actions -->
             @if (showActions()) {
+            <div class="flex flex-col items-end gap-2">
+              @if (!currentUserIsPublic()) {
+              <div class="flex items-center gap-2 bg-yellow-900/30 border border-hyrox-yellow/40 rounded-lg px-3 py-2 text-xs text-hyrox-yellow max-w-xs text-right">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
+                </svg>
+                Votre profil doit être public pour un abonnement mutuel
+              </div>
+              }
             <div class="flex items-center gap-3 flex-wrap">
               @if (followStatus()?.isMutual) {
               <button
@@ -156,6 +143,7 @@ type PublicProfileResponse = {
               <span class="text-xs text-hyrox-gray-400">Vous suit</span>
               }
               }
+            </div>
             </div>
             }
           </div>
@@ -236,6 +224,8 @@ export class PublicUserProfilePage {
     const profileUser = this.profile()?.user;
     return currentUser && profileUser && currentUser.id !== profileUser.id;
   });
+
+  currentUserIsPublic = computed(() => this.#authService.currentUser()?.isPublic === true);
 
   constructor() {
     this.#route.paramMap.subscribe((params) => {

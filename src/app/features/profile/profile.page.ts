@@ -6,86 +6,16 @@ import { CommonModule } from '@angular/common';
 import { AuthService } from 'src/app/core/auth/auth.service';
 import { environment } from 'src/environments/environment';
 import { Goal, User } from 'src/app/core/types/interfaces';
+import { FollowService, FollowUser } from 'src/app/core/follows/follow.service';
+import { NavbarComponent } from 'src/app/shared/navbar/navbar.component';
 
 @Component({
   selector: 'app-profile',
   standalone: true,
-  imports: [ReactiveFormsModule, RouterLink, CommonModule],
+  imports: [ReactiveFormsModule, RouterLink, CommonModule, NavbarComponent],
   template: `
     <div class="min-h-screen bg-hyrox-black">
-      <nav class="bg-hyrox-gray-900 border-b border-hyrox-gray-800 shadow-lg">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div class="flex justify-between h-20">
-            <div class="flex items-center space-x-8">
-              <h1 class="hyrox-title">Hyrox Tracker</h1>
-              <nav class="hidden md:flex space-x-6">
-                <a routerLink="/dashboard" class="text-hyrox-gray-400 hover:text-hyrox-yellow font-semibold text-sm uppercase tracking-wide transition-colors">Dashboard</a>
-                <a routerLink="/courses" class="text-hyrox-gray-400 hover:text-hyrox-yellow font-semibold text-sm uppercase tracking-wide transition-colors">Courses</a>
-                <a routerLink="/trainings" class="text-hyrox-gray-400 hover:text-hyrox-yellow font-semibold text-sm uppercase tracking-wide transition-colors">Entraînements</a>
-                <a routerLink="/stats" class="text-hyrox-gray-400 hover:text-hyrox-yellow font-semibold text-sm uppercase tracking-wide transition-colors">Statistiques</a>
-              </nav>
-            </div>
-            <div class="flex items-center space-x-4">
-              <a
-                routerLink="/search"
-                class="p-2 rounded-lg text-hyrox-gray-400 hover:text-hyrox-yellow hover:bg-hyrox-gray-800 transition-colors"
-                aria-label="Rechercher des utilisateurs"
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-4.35-4.35m1.85-5.15a7 7 0 11-14 0 7 7 0 0114 0z" />
-                </svg>
-              </a>
-              <!-- Menu utilisateur -->
-              <div class="relative user-menu-container">
-                <button
-                  (click)="toggleUserMenu($event)"
-                  (keydown.enter)="toggleUserMenu($event)"
-                  class="flex items-center space-x-2 text-sm text-white hover:text-hyrox-yellow cursor-pointer font-semibold transition-colors bg-transparent border-none p-2 rounded-lg hover:bg-hyrox-gray-800"
-                >
-                  <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                  </svg>
-                  <span>{{ currentUser()?.firstName }} {{ currentUser()?.lastName }}</span>
-                  <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-                  </svg>
-                </button>
-                
-                @if (showUserMenu()) {
-                <div class="absolute right-0 mt-2 w-48 bg-hyrox-gray-900 rounded-lg shadow-xl border-2 border-hyrox-yellow py-1 z-50">
-                  <a routerLink="/profile" (click)="closeUserMenu()" class="block px-4 py-2 text-sm text-white hover:bg-hyrox-gray-800 hover:text-hyrox-yellow transition-colors">
-                    <div class="flex items-center space-x-2">
-                      <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                      </svg>
-                      <span>Profil</span>
-                    </div>
-                  </a>
-                  <a routerLink="/settings" (click)="closeUserMenu()" class="block px-4 py-2 text-sm text-white hover:bg-hyrox-gray-800 hover:text-hyrox-yellow transition-colors">
-                    <div class="flex items-center space-x-2">
-                      <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                      </svg>
-                      <span>Paramètres</span>
-                    </div>
-                  </a>
-                  <div class="border-t border-hyrox-gray-800 my-1"></div>
-                  <button (click)="logout(); closeUserMenu()" class="w-full text-left block px-4 py-2 text-sm text-red-400 hover:bg-red-900/20 hover:text-red-300 transition-colors">
-                    <div class="flex items-center space-x-2">
-                      <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-                      </svg>
-                      <span>Déconnexion</span>
-                    </div>
-                  </button>
-                </div>
-                }
-              </div>
-            </div>
-          </div>
-        </div>
-      </nav>
+      <app-navbar activePage="profile" />
 
       <main class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <h1 class="text-4xl font-black text-hyrox-yellow mb-8 uppercase tracking-wide">Profil</h1>
@@ -159,6 +89,78 @@ import { Goal, User } from 'src/app/core/types/interfaces';
               </button>
             </div>
           </form>
+        </div>
+
+        <!-- Abonnements -->
+        <div class="card mb-8">
+          <div class="flex items-center justify-between mb-6">
+            <h2 class="text-xl font-bold text-white">Abonnements</h2>
+            <div class="flex gap-4 text-sm">
+              <button
+                (click)="activeTab.set('followers')"
+                [class]="activeTab() === 'followers'
+                  ? 'font-bold text-hyrox-yellow border-b-2 border-hyrox-yellow pb-1'
+                  : 'text-hyrox-gray-400 hover:text-white transition-colors pb-1'"
+              >
+                Abonnés ({{ followers().length }})
+              </button>
+              <button
+                (click)="activeTab.set('following')"
+                [class]="activeTab() === 'following'
+                  ? 'font-bold text-hyrox-yellow border-b-2 border-hyrox-yellow pb-1'
+                  : 'text-hyrox-gray-400 hover:text-white transition-colors pb-1'"
+              >
+                Abonnements ({{ following().length }})
+              </button>
+            </div>
+          </div>
+
+          @if (isLoadingFollows()) {
+          <div class="space-y-3">
+            @for (_ of [1,2,3]; track $index) {
+            <div class="flex items-center gap-3 animate-pulse">
+              <div class="h-10 w-10 rounded-full bg-hyrox-gray-800 flex-shrink-0"></div>
+              <div class="flex-1">
+                <div class="h-3.5 bg-hyrox-gray-800 rounded w-1/3 mb-1.5"></div>
+                <div class="h-3 bg-hyrox-gray-800 rounded w-1/4"></div>
+              </div>
+            </div>
+            }
+          </div>
+          } @else {
+          @let list = activeTab() === 'followers' ? followers() : following();
+          @if (list.length === 0) {
+          <p class="text-hyrox-gray-400 text-sm">
+            {{ activeTab() === 'followers' ? 'Personne ne vous suit encore.' : 'Vous ne suivez personne.' }}
+          </p>
+          } @else {
+          <div class="space-y-2">
+            @for (u of list; track u.id) {
+            <a
+              [routerLink]="['/user', u.id]"
+              class="flex items-center gap-3 p-3 rounded-xl hover:bg-hyrox-gray-800 transition-colors cursor-pointer"
+            >
+              <div class="h-10 w-10 rounded-full overflow-hidden bg-hyrox-gray-800 flex items-center justify-center flex-shrink-0">
+                @if (u.avatar) {
+                <img [src]="u.avatar" [alt]="followUserName(u)" class="h-full w-full object-cover" />
+                } @else {
+                <span class="text-hyrox-yellow font-black text-xs">{{ followUserInitials(u) }}</span>
+                }
+              </div>
+              <div class="flex-1 min-w-0">
+                <p class="font-semibold text-white text-sm truncate">{{ followUserName(u) }}</p>
+                @if (u.category) {
+                <p class="text-xs text-hyrox-gray-400 truncate">{{ u.category }}</p>
+                }
+              </div>
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-hyrox-gray-500 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+              </svg>
+            </a>
+            }
+          </div>
+          }
+          }
         </div>
 
         <!-- Objectifs personnels (todo-list) -->
@@ -381,12 +383,17 @@ export class ProfilePage implements OnInit {
   #authService = inject(AuthService);
   #http = inject(HttpClient);
   #fb = inject(FormBuilder);
+  #followService = inject(FollowService);
 
   currentUser = this.#authService.currentUser;
   isUpdatingProfile = signal(false);
   profileError = signal<string | null>(null);
   profileSuccess = signal<string | null>(null);
-  showUserMenu = signal(false);
+
+  followers = signal<FollowUser[]>([]);
+  following = signal<FollowUser[]>([]);
+  isLoadingFollows = signal(false);
+  activeTab = signal<'followers' | 'following'>('followers');
 
   goals = signal<Goal[]>([]);
   isLoadingGoals = signal(false);
@@ -418,18 +425,29 @@ export class ProfilePage implements OnInit {
   });
 
   ngOnInit() {
-    // Fermer le menu si on clique en dehors
-    document.addEventListener('click', (event) => {
-      if (this.showUserMenu()) {
-        const target = event.target as HTMLElement;
-        if (!target.closest('.user-menu-container')) {
-          this.closeUserMenu();
-        }
-      }
-    });
-
     this.loadUserProfile();
     this.loadGoals();
+    this.loadFollows();
+  }
+
+  loadFollows() {
+    this.isLoadingFollows.set(true);
+    Promise.all([
+      this.#followService.getFollowers().toPromise(),
+      this.#followService.getFollowing().toPromise(),
+    ]).then(([followersRes, followingRes]) => {
+      this.followers.set(followersRes?.data ?? []);
+      this.following.set(followingRes?.data ?? []);
+      this.isLoadingFollows.set(false);
+    }).catch(() => this.isLoadingFollows.set(false));
+  }
+
+  followUserName(u: FollowUser): string {
+    return `${u.firstName} ${u.lastName}`.trim();
+  }
+
+  followUserInitials(u: FollowUser): string {
+    return `${u.firstName?.[0] ?? ''}${u.lastName?.[0] ?? ''}`.toUpperCase() || '?';
   }
 
   loadUserProfile() {
@@ -588,21 +606,5 @@ export class ProfilePage implements OnInit {
       month: 'long',
       year: 'numeric',
     });
-  }
-
-  toggleUserMenu(event?: Event) {
-    if (event) {
-      event.stopPropagation();
-    }
-    const currentValue = this.showUserMenu();
-    this.showUserMenu.set(!currentValue);
-  }
-
-  closeUserMenu() {
-    this.showUserMenu.set(false);
-  }
-
-  logout() {
-    this.#authService.logout();
   }
 }
