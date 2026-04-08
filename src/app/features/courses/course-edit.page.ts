@@ -2,9 +2,9 @@ import { ChangeDetectionStrategy, Component, inject, OnInit, signal } from '@ang
 import { FormBuilder, FormArray, FormControl, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
-import { AuthService } from 'src/app/core/auth/auth.service';
 import { environment } from 'src/environments/environment';
 import { Course, CourseTime } from 'src/app/core/types/interfaces';
+import { NavbarComponent } from 'src/app/shared/navbar/navbar.component';
 
 const SEGMENTS = [
   { key: 'run1', label: 'Run 1', hasPlace: false },
@@ -28,7 +28,7 @@ const SEGMENTS = [
 @Component({
   selector: 'app-course-edit',
   standalone: true,
-  imports: [ReactiveFormsModule, RouterLink],
+  imports: [ReactiveFormsModule, RouterLink, NavbarComponent],
   templateUrl: './course-edit.page.html',
   styleUrl: './course-edit.page.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -38,16 +38,13 @@ export class CourseEditPage implements OnInit {
   #router = inject(Router);
   #http = inject(HttpClient);
   #fb = inject(FormBuilder);
-  #authService = inject(AuthService);
 
-  currentUser = this.#authService.currentUser;
   courseId = signal<string | null>(null);
   isLoading = signal(true);
   courseLoaded = signal(false);
   isSubmitting = signal(false);
   error = signal<string | null>(null);
   success = signal<string | null>(null);
-  showUserMenu = signal(false);
 
   readonly SEGMENTS = SEGMENTS;
 
@@ -221,16 +218,4 @@ export class CourseEditPage implements OnInit {
     });
   }
 
-  toggleUserMenu(event?: Event): void {
-    if (event) event.stopPropagation();
-    this.showUserMenu.update((v) => !v);
-  }
-
-  closeUserMenu(): void {
-    this.showUserMenu.set(false);
-  }
-
-  logout(): void {
-    this.#authService.logout();
-  }
 }

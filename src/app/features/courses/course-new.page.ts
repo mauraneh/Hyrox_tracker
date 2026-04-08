@@ -3,7 +3,6 @@ import { FormBuilder, ReactiveFormsModule, Validators, FormArray, FormControl } 
 import { Router, RouterLink } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
 import { CommonModule } from '@angular/common';
-import { AuthService } from 'src/app/core/auth/auth.service';
 import { environment } from 'src/environments/environment';
 import { NavbarComponent } from 'src/app/shared/navbar/navbar.component';
 
@@ -179,7 +178,6 @@ const SEGMENTS = [
   `,
 })
 export class CourseNewPage {
-  #authService = inject(AuthService);
   #http = inject(HttpClient);
   #fb = inject(FormBuilder);
   #router = inject(Router);

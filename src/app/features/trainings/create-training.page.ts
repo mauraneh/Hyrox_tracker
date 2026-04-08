@@ -1,6 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { Component, computed, inject, OnInit, signal } from '@angular/core';
+import { Component, computed, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { TrainingDifficulty, TrainingFormat, TrainingType } from '@core/types/enums';
@@ -203,7 +203,7 @@ export type CreateTrainingPayload = {
     </div>
   `,
 })
-export class CreateTrainingPage implements OnInit {
+export class CreateTrainingPage {
   #authService = inject(AuthService);
   #formBuilder = inject(FormBuilder);
   #httpClient = inject(HttpClient);
@@ -241,10 +241,6 @@ export class CreateTrainingPage implements OnInit {
 
     comment: this.#formBuilder.control<string | null>(null),
   });
-
-  ngOnInit(): void {
-    // no-op: nav-related setup removed
-  }
 
   loadPreset(difficulty: TrainingDifficulty): void {
     const type = this.form.get('type')?.value;

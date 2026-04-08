@@ -4,6 +4,7 @@ import { Router, RouterLink } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
 import { AuthService } from 'src/app/core/auth/auth.service';
 import { environment } from 'src/environments/environment';
+import { NavbarComponent } from 'src/app/shared/navbar/navbar.component';
 
 const SEGMENTS = [
   { key: 'run1', label: 'Run 1' },
@@ -27,7 +28,7 @@ const SEGMENTS = [
 @Component({
   selector: 'app-course-import',
   standalone: true,
-  imports: [ReactiveFormsModule, RouterLink],
+  imports: [ReactiveFormsModule, RouterLink, NavbarComponent],
   templateUrl: './course-import.page.html',
   styleUrl: './course-import.page.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -44,7 +45,6 @@ export class CourseImportPage {
   selectedFile = signal<File | null>(null);
   isImportingCsv = signal(false);
   isImportingManual = signal(false);
-  showUserMenu = signal(false);
 
   readonly SEGMENTS = SEGMENTS;
 
@@ -210,16 +210,4 @@ export class CourseImportPage {
     });
   }
 
-  toggleUserMenu(event?: Event): void {
-    if (event) event.stopPropagation();
-    this.showUserMenu.update((v) => !v);
-  }
-
-  closeUserMenu(): void {
-    this.showUserMenu.set(false);
-  }
-
-  logout(): void {
-    this.#authService.logout();
-  }
 }

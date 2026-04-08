@@ -1,10 +1,10 @@
-import { ChangeDetectionStrategy, Component, computed, inject, OnDestroy, OnInit, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, OnInit, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { RouterLink } from '@angular/router';
-import { AuthService } from 'src/app/core/auth/auth.service';
 import { environment } from 'src/environments/environment';
 import { Course } from 'src/app/core/types/interfaces';
 import { CoursesTimeAreaChartComponent, type TimePoint } from 'src/app/shared/charts/courses-time-area-chart.component';
+import { NavbarComponent } from 'src/app/shared/navbar/navbar.component';
 
 type SortOrder = 'date-desc' | 'date-asc' | 'time-asc' | 'time-desc' | 'city-asc' | 'category-asc';
 
@@ -30,20 +30,17 @@ function compareCourses(a: Course, b: Course, order: SortOrder): number {
 @Component({
   selector: 'app-courses-list',
   standalone: true,
-  imports: [RouterLink, CoursesTimeAreaChartComponent],
+  imports: [RouterLink, CoursesTimeAreaChartComponent, NavbarComponent],
   templateUrl: './courses-list.page.html',
   styleUrl: './courses-list.page.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class CoursesListPage implements OnInit, OnDestroy {
-  #authService = inject(AuthService);
+export class CoursesListPage implements OnInit {
   #http = inject(HttpClient);
 
-  currentUser = this.#authService.currentUser;
   pastCourses = signal<Course[]>([]);
   isLoading = signal(true);
   error = signal<string | null>(null);
-  showUserMenu = signal(false);
   isExporting = signal(false);
 
   filterCity = signal<string>('');
@@ -91,21 +88,7 @@ export class CoursesListPage implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.loadCourses();
-    document.addEventListener('click', this.#handleDocumentClick);
   }
-
-  ngOnDestroy(): void {
-    document.removeEventListener('click', this.#handleDocumentClick);
-  }
-
-  #handleDocumentClick = (event: Event): void => {
-    if (this.showUserMenu()) {
-      const target = event.target as HTMLElement;
-      if (!target.closest('.user-menu-container')) {
-        this.closeUserMenu();
-      }
-    }
-  };
 
   loadCourses(): void {
     this.isLoading.set(true);
@@ -130,21 +113,6 @@ export class CoursesListPage implements OnInit, OnDestroy {
     return courses
       .filter((course) => new Date(course.date).getTime() <= todayMs)
       .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-  }
-
-  toggleUserMenu(event?: Event): void {
-    if (event) {
-      event.stopPropagation();
-    }
-    this.showUserMenu.update((value) => !value);
-  }
-
-  closeUserMenu(): void {
-    this.showUserMenu.set(false);
-  }
-
-  logout(): void {
-    this.#authService.logout();
   }
 
   formatTime(seconds: number): string {

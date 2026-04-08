@@ -49,6 +49,7 @@ export class MessagesService implements OnDestroy {
   #followService = inject(FollowService);
   #base = `${environment.apiUrl}/messages`;
   #socket: Socket | null = null;
+  #newMessageListeners = new Map<(msg: Message) => void, (msg: Message) => void>();
 
   unreadCount = signal(0);
   newMessage = signal<Message | null>(null);
@@ -65,6 +66,7 @@ export class MessagesService implements OnDestroy {
       this.#socket.removeAllListeners();
       this.#socket.disconnect();
       this.#socket = null;
+      this.#newMessageListeners.clear();
     }
 
     // Établir la connexion en dehors de la zone Angular pour éviter
@@ -99,6 +101,7 @@ export class MessagesService implements OnDestroy {
       this.#socket.removeAllListeners();
       this.#socket.disconnect();
       this.#socket = null;
+      this.#newMessageListeners.clear();
     }
   }
 
@@ -107,17 +110,22 @@ export class MessagesService implements OnDestroy {
   }
 
   onNewMessage(callback: (msg: Message) => void) {
-    this.#socket?.on('new_message', (msg: Message) => {
+    if (!this.#socket || this.#newMessageListeners.has(callback)) return;
+
+    const handler = (msg: Message) => {
       this.#zone.run(() => callback(msg));
-    });
+    };
+
+    this.#newMessageListeners.set(callback, handler);
+    this.#socket.on('new_message', handler);
   }
 
-  offNewMessage(_callback: (msg: Message) => void) {
-    this.#socket?.removeAllListeners('new_message');
-    // Ré-enregistrer le handler principal
-    this.#socket?.on('new_message', (msg: Message) => {
-      this.#zone.run(() => this.newMessage.set(msg));
-    });
+  offNewMessage(callback: (msg: Message) => void) {
+    const handler = this.#newMessageListeners.get(callback);
+    if (!handler) return;
+
+    this.#socket?.off('new_message', handler);
+    this.#newMessageListeners.delete(callback);
   }
 
   getConversations(): Observable<{ success: boolean; data: Conversation[] }> {

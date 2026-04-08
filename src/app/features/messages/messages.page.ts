@@ -92,8 +92,14 @@ import { NavbarComponent } from 'src/app/shared/navbar/navbar.component';
 
     <!-- Modale Nouveau message -->
     @if (showNewModal()) {
-    <div class="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4" (click)="closeNewModal()">
-      <div class="bg-hyrox-gray-900 border border-hyrox-gray-800 rounded-2xl w-full max-w-md shadow-2xl" (click)="$event.stopPropagation()">
+    <div class="fixed inset-0 flex items-center justify-center z-50 p-4">
+      <button
+        type="button"
+        class="absolute inset-0 bg-black/70 cursor-default"
+        aria-label="Fermer la modale"
+        (click)="closeNewModal()"
+      ></button>
+      <div class="relative bg-hyrox-gray-900 border border-hyrox-gray-800 rounded-2xl w-full max-w-md shadow-2xl" role="dialog" aria-modal="true">
         <div class="flex items-center justify-between p-5 border-b border-hyrox-gray-800">
           <h3 class="text-lg font-black text-white uppercase tracking-wide">Nouvelle conversation</h3>
           <button (click)="closeNewModal()" class="text-hyrox-gray-400 hover:text-white transition-colors bg-transparent border-none cursor-pointer p-0">

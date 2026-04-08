@@ -2,7 +2,6 @@ import { Component, OnInit, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
 import { CommonModule } from '@angular/common';
-import { AuthService } from 'src/app/core/auth/auth.service';
 import { environment } from 'src/environments/environment';
 import { forkJoin } from 'rxjs';
 import { StatsOverview, ProgressionData, StationStats, RoxzoneStats } from 'src/app/core/types/interfaces';
@@ -279,7 +278,6 @@ import { NavbarComponent } from 'src/app/shared/navbar/navbar.component';
   `,
 })
 export class StatsPage implements OnInit {
-  #authService = inject(AuthService);
   #http = inject(HttpClient);
 
   overview = signal<StatsOverview | null>(null);

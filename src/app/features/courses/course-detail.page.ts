@@ -1,9 +1,9 @@
-import { ChangeDetectionStrategy, Component, inject, OnDestroy, OnInit, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, OnInit, signal } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
-import { AuthService } from 'src/app/core/auth/auth.service';
 import { environment } from 'src/environments/environment';
 import { Course, CourseTime } from 'src/app/core/types/interfaces';
+import { NavbarComponent } from 'src/app/shared/navbar/navbar.component';
 
 const SEGMENT_LABELS: Record<string, string> = {
   run1: 'Run 1',
@@ -27,26 +27,22 @@ const SEGMENT_LABELS: Record<string, string> = {
 @Component({
   selector: 'app-course-detail',
   standalone: true,
-  imports: [RouterLink],
+  imports: [RouterLink, NavbarComponent],
   templateUrl: './course-detail.page.html',
   styleUrl: './course-detail.page.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class CourseDetailPage implements OnInit, OnDestroy {
+export class CourseDetailPage implements OnInit {
   #route = inject(ActivatedRoute);
   #router = inject(Router);
   #http = inject(HttpClient);
-  #authService = inject(AuthService);
 
-  currentUser = this.#authService.currentUser;
   course = signal<Course | null>(null);
   isLoading = signal(true);
   error = signal<string | null>(null);
-  showUserMenu = signal(false);
   isDeleting = signal(false);
 
   ngOnInit(): void {
-    document.addEventListener('click', this.#handleDocumentClick);
     const id = this.#route.snapshot.paramMap.get('id');
     if (id) {
       this.loadCourse(id);
@@ -55,19 +51,6 @@ export class CourseDetailPage implements OnInit, OnDestroy {
       this.isLoading.set(false);
     }
   }
-
-  ngOnDestroy(): void {
-    document.removeEventListener('click', this.#handleDocumentClick);
-  }
-
-  #handleDocumentClick = (event: Event): void => {
-    if (this.showUserMenu()) {
-      const target = event.target as HTMLElement;
-      if (!target.closest('.user-menu-container')) {
-        this.closeUserMenu();
-      }
-    }
-  };
 
   loadCourse(id: string): void {
     this.isLoading.set(true);
@@ -82,21 +65,6 @@ export class CourseDetailPage implements OnInit, OnDestroy {
         this.isLoading.set(false);
       },
     });
-  }
-
-  toggleUserMenu(event?: Event): void {
-    if (event) {
-      event.stopPropagation();
-    }
-    this.showUserMenu.update((value) => !value);
-  }
-
-  closeUserMenu(): void {
-    this.showUserMenu.set(false);
-  }
-
-  logout(): void {
-    this.#authService.logout();
   }
 
   formatTime(seconds: number): string {
