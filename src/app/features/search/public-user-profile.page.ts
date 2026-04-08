@@ -1,6 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
-import { Component, computed, inject, signal } from '@angular/core';
+import { Component, computed, effect, inject, signal } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { environment } from 'src/environments/environment';
 import { FollowService, FollowStatus } from 'src/app/core/follows/follow.service';
@@ -217,6 +217,7 @@ export class PublicUserProfilePage {
   profile = signal<PublicProfileResponse['data'] | null>(null);
   followStatus = signal<FollowStatus | null>(null);
   followLoading = signal(false);
+  #profileUserId = signal<string | null>(null);
 
   // Show actions only when viewing someone else's profile
   showActions = computed(() => {
@@ -236,8 +237,17 @@ export class PublicUserProfilePage {
         this.error.set('Utilisateur invalide');
         return;
       }
+      this.#profileUserId.set(id);
+      this.followStatus.set(null);
       this.loadProfile(id);
-      this.loadFollowStatus(id);
+    });
+
+    effect(() => {
+      const currentUser = this.#authService.currentUser();
+      const id = this.#profileUserId();
+      if (currentUser && id && currentUser.id !== id) {
+        this.loadFollowStatus(id);
+      }
     });
   }
 
